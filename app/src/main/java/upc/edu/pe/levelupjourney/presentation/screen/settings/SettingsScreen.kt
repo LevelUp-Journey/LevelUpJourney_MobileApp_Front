@@ -40,11 +40,18 @@ fun SettingsScreen(
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Profile",
+                    text = "Settings",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.Black
                 )
             }
+
+            Text(
+                text = "Account",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.Black,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
 
             Spacer(Modifier.height(16.dp))
 
