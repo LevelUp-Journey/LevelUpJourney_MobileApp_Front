@@ -21,6 +21,13 @@ import upc.edu.pe.levelupjourney.presentation.screen.community.CommunityScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommentsScreen
 import upc.edu.pe.levelupjourney.domain.model.Post
 import upc.edu.pe.levelupjourney.domain.model.Comment
+import upc.edu.pe.levelupjourney.presentation.screen.game.GameFinishedScreen
+import upc.edu.pe.levelupjourney.presentation.screen.join.ConnectingScreen
+import upc.edu.pe.levelupjourney.presentation.screen.join.EnterPinScreen
+import upc.edu.pe.levelupjourney.presentation.screen.game.GameQuestionScreen
+import upc.edu.pe.levelupjourney.presentation.screen.game.Question
+import upc.edu.pe.levelupjourney.presentation.screen.join.JoinGameScreen
+import upc.edu.pe.levelupjourney.presentation.screen.join.NicknameScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
@@ -41,6 +48,23 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             2 to mutableStateListOf<Comment>()
         )
     }
+
+    val questions = listOf(
+        Question(
+            id = 1,
+            title = "What is seen here?",
+            placeholder = "Code/Image Placeholder",
+            options = listOf("Terminology", "Function", "Error", "None of the above"),
+            correctIndex = 1
+        ),
+        Question(
+            id = 2,
+            title = "Is this made in Go?",
+            placeholder = "Placeholder for code snippet",
+            options = listOf("True", "False"),
+            correctIndex = 1
+        )
+    )
 
     NavHost(
         navController = navController,
@@ -93,7 +117,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             HomeScreen(
                 onProfileClick = { navController.navigate("profile") },
                 onSettingsClick = { navController.navigate("settings") },
-                onJoinTabClick = { /* TODO */ },
+                onJoinTabClick = { navController.navigate("join") },
                 onCommunityTabClick = { navController.navigate("community") }
             )
         }
@@ -104,7 +128,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 onSettingsClick = { navController.navigate("settings") },
                 onEditClick = { /* TODO */ },
                 onHomeClick = { navController.navigate("home") },
-                onJoinClick = { /* TODO */ },
+                onJoinClick = { navController.navigate("join") },
                 onCommunityClick = { navController.navigate("community") }
             )
         }
@@ -123,14 +147,12 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         composable("community") {
             CommunityScreen(
                 posts = posts,
-                onPostSelected = { post ->
-                    navController.navigate("comments/${post.id}")
-                },
+                onPostSelected = { post -> navController.navigate("comments/${post.id}") },
                 onSettingsClick = { navController.navigate("settings") },
                 onHomeClick = { navController.navigate("home") },
-                onJoinClick = { /* TODO */ },
+                onJoinClick = { navController.navigate("join") },
                 onProfileClick = { navController.navigate("profile") },
-                onCommunityClick = { /* stays in community */ }
+                onCommunityClick = { /* stay in community */ }
             )
         }
 
@@ -151,6 +173,63 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     }
                 )
             }
+        }
+
+        // ---- JOIN FLOW ----
+        composable("join") {
+            JoinGameScreen(
+                onBackToHome = { navController.navigate("home") },
+                onEnterPin = { navController.navigate("join/pin") },
+                onScanCode = { /* TODO: QR */ }
+            )
+        }
+        composable("join/pin") {
+            EnterPinScreen(
+                onBackToHome = { navController.navigate("home") },
+                onEnterGame = { navController.navigate("join/connecting") },
+                onScanCode = { /* TODO */ }
+            )
+        }
+        composable("join/connecting") {
+            ConnectingScreen(
+                onFinished = { navController.navigate("join/nickname") }
+            )
+        }
+        composable("join/nickname") {
+            NicknameScreen(
+                onBackToHome = { navController.navigate("home") },
+                onEnterNickname = { navController.navigate("join/connecting-start") }
+            )
+        }
+        composable("join/connecting-start") {
+            ConnectingScreen(
+                onFinished = { navController.navigate("game/question/1") }
+            )
+        }
+
+        // ---- GAME QUESTIONS ----
+            composable("game/question/{id}") { backStackEntry ->
+                val id: Int? = backStackEntry.arguments?.getString("id")?.toIntOrNull()
+                val qIndex: Int = questions.indexOfFirst { question: Question -> question.id == id }
+                if (qIndex >= 0) {
+                    GameQuestionScreen(
+                        question = questions[qIndex],
+                        onClose = { navController.navigate("home") },
+                        onNext = {
+                            if (qIndex + 1 < questions.size) {
+                                navController.navigate("game/question/${questions[qIndex + 1].id}")
+                            } else {
+                                navController.navigate("game/finished")
+                            }
+                        }
+                    )
+                }
+            }
+
+        composable("game/finished") {
+            GameFinishedScreen(
+                onBackToHome = { navController.navigate("home") }
+            )
         }
     }
 }
