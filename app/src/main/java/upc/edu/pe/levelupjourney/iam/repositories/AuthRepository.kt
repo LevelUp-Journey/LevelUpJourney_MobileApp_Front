@@ -1,4 +1,4 @@
-package upc.edu.pe.levelupjourney.data.repositories
+package upc.edu.pe.levelupjourney.iam.repositories
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
@@ -6,12 +6,12 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import upc.edu.pe.levelupjourney.data.api.AuthApiService
-import upc.edu.pe.levelupjourney.data.models.AuthenticatedUser
-import upc.edu.pe.levelupjourney.data.models.RefreshTokenRequest
-import upc.edu.pe.levelupjourney.data.models.SignInRequest
-import upc.edu.pe.levelupjourney.data.models.SignUpRequest
-import upc.edu.pe.levelupjourney.data.models.TokenResponse
+import upc.edu.pe.levelupjourney.iam.api.AuthApiService
+import upc.edu.pe.levelupjourney.iam.models.AuthenticatedUser
+import upc.edu.pe.levelupjourney.iam.models.RefreshTokenRequest
+import upc.edu.pe.levelupjourney.iam.models.SignInRequest
+import upc.edu.pe.levelupjourney.iam.models.SignUpRequest
+import upc.edu.pe.levelupjourney.iam.models.TokenResponse
 
 private val Context.dataStore by preferencesDataStore("auth_prefs")
 

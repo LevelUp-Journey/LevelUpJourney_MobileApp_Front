@@ -1,4 +1,4 @@
-package upc.edu.pe.levelupjourney.data.api
+package upc.edu.pe.levelupjourney.iam.api
 
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -6,7 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import upc.edu.pe.levelupjourney.data.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 
 object ApiClient {
     private const val BASE_URL = "http://192.168.0.231:8081" // For Android emulator pointing to localhost

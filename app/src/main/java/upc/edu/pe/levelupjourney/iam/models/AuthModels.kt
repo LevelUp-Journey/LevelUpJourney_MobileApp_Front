@@ -1,4 +1,4 @@
-package upc.edu.pe.levelupjourney.data.models
+package upc.edu.pe.levelupjourney.iam.models
 
 // Authentication request/response models
 data class SignInRequest(

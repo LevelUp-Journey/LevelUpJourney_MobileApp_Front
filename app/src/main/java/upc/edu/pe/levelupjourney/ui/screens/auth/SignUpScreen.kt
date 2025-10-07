@@ -15,8 +15,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import upc.edu.pe.levelupjourney.data.api.ApiClient
-import upc.edu.pe.levelupjourney.data.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.iam.api.ApiClient
+import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 import upc.edu.pe.levelupjourney.ui.viewmodels.AuthState
 import upc.edu.pe.levelupjourney.ui.viewmodels.AuthViewModel
 import upc.edu.pe.levelupjourney.ui.viewmodels.AuthViewModelFactory

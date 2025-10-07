@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import upc.edu.pe.levelupjourney.data.models.AuthenticatedUser
-import upc.edu.pe.levelupjourney.data.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.iam.models.AuthenticatedUser
+import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 
 class AuthViewModel(private val authRepository: AuthRepository) : ViewModel() {
 

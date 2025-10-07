@@ -1,8 +1,8 @@
-package upc.edu.pe.levelupjourney.data.repositories
+package upc.edu.pe.levelupjourney.iam.repositories
 
-import upc.edu.pe.levelupjourney.data.api.UserApiService
-import upc.edu.pe.levelupjourney.data.models.Role
-import upc.edu.pe.levelupjourney.data.models.User
+import upc.edu.pe.levelupjourney.iam.api.UserApiService
+import upc.edu.pe.levelupjourney.iam.models.Role
+import upc.edu.pe.levelupjourney.iam.models.User
 
 class UserRepository(private val apiService: UserApiService) {
 

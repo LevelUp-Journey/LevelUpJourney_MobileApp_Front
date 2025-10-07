@@ -1,9 +1,9 @@
-package upc.edu.pe.levelupjourney.data.api
+package upc.edu.pe.levelupjourney.iam.api
 
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
-import upc.edu.pe.levelupjourney.data.models.*
+import upc.edu.pe.levelupjourney.iam.models.*
 
 interface AuthApiService {
     @POST("/api/v1/authentication/sign-in")
