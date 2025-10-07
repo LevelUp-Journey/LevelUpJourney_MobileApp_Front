@@ -45,7 +45,8 @@ fun WelcomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 80.dp),
+                .statusBarsPadding()
+                .padding(horizontal = 32.dp, vertical = 40.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

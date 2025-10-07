@@ -65,15 +65,15 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .padding(horizontal = 32.dp, vertical = 24.dp),
-        verticalArrangement = Arrangement.Center,
+            .padding(horizontal = 32.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Back button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp),
+                .padding(top = 16.dp, bottom = 24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
@@ -84,6 +84,9 @@ fun LoginScreen(
                 )
             }
         }
+
+        // Spacer to center content vertically
+        Spacer(modifier = Modifier.weight(1f))
 
         Text(
             text = "Welcome Back",
@@ -156,5 +159,8 @@ fun LoginScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+
+        // Bottom spacer to center content
+        Spacer(modifier = Modifier.weight(1f))
     }
 }

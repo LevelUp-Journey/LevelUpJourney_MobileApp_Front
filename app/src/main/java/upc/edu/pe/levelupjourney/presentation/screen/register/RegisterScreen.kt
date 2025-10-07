@@ -79,14 +79,14 @@ fun RegisterScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 32.dp)
+                .statusBarsPadding()
+                .padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
             // Flecha atrás
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(top = 8.dp),
+                    .padding(bottom = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
@@ -98,8 +98,6 @@ fun RegisterScreen(
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
-
             Image(
                 painter = painterResource(id = R.drawable.pet_sat),
                 contentDescription = "App Logo",
@@ -108,7 +106,7 @@ fun RegisterScreen(
                     .align(Alignment.CenterHorizontally)
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
             OutlinedTextField(
                 value = email,

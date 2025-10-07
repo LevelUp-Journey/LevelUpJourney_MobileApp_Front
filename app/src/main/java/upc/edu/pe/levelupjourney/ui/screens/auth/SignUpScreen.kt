@@ -90,10 +90,14 @@ fun SignUpScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
+            .statusBarsPadding()
+            .padding(horizontal = 32.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Top spacer to center content vertically
+        Spacer(modifier = Modifier.weight(0.5f))
+
         Text(
             text = "Create Account",
             style = MaterialTheme.typography.headlineMedium,
@@ -207,5 +211,8 @@ fun SignUpScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+
+        // Bottom spacer to center content
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
