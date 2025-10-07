@@ -2,7 +2,7 @@ package upc.edu.pe.levelupjourney.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import upc.edu.pe.levelupjourney.data.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 
 class AuthViewModelFactory(private val authRepository: AuthRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
