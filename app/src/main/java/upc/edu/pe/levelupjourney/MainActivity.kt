@@ -3,7 +3,9 @@ package upc.edu.pe.levelupjourney
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import upc.edu.pe.levelupjourney.common.theme.AppTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import upc.edu.pe.levelupjourney.common.ui.theme.AppTheme
 import upc.edu.pe.levelupjourney.presentation.navigation.AppNavHost
 
 class MainActivity : ComponentActivity() {
@@ -14,5 +16,14 @@ class MainActivity : ComponentActivity() {
                 AppNavHost()
             }
         }
+    }
+}
+
+
+@Preview
+@Composable
+fun MainPreview() {
+    AppTheme {
+        AppNavHost()
     }
 }
