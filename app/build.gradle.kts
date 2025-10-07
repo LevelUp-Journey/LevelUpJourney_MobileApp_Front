@@ -45,14 +45,14 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     
     // --- Jetpack Compose (UI base) ---
-    implementation("androidx.activity:activity-compose:1.9.2")
+    implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation("androidx.compose.ui:ui:1.7.4")
+    implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation("androidx.compose.ui:ui-tooling-preview:1.7.4")
-    implementation("androidx.compose.material3:material3:1.3.0")
-    implementation("androidx.compose.material:material-icons-core:1.7.5")
-    implementation("androidx.compose.material:material-icons-extended:1.7.5")
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material-icons-core")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
 
@@ -90,7 +90,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
     // --- Animaciones y transiciones fluidas ---
-    implementation("androidx.compose.animation:animation:1.7.4")
+    implementation("androidx.compose.animation:animation")
 
     // --- Testing dependencies ---
     testImplementation(libs.junit)

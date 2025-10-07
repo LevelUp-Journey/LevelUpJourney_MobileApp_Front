@@ -187,10 +187,10 @@ fun BottomRegistrationDrawer(
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(
-                    Icons.Default.AccountCircle,
-                    contentDescription = null,
-                    tint = Color(0xFFF32A27)
+                AsyncImage(
+                    model = "file:///android_asset/google.svg",
+                    contentDescription = "Google Logo",
+                    modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
