@@ -86,8 +86,13 @@ dependencies {
     // --- JSON más flexible (si prefieres Gson en lugar de kotlinx) ---
     implementation("com.google.code.gson:gson:2.11.0")
 
-    // --- Seguridad en almacenamiento de tokens ---
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // --- Networking with Retrofit (for IAM integration) ---
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    // --- DataStore for secure token storage ---
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // --- Animaciones y transiciones fluidas ---
     implementation("androidx.compose.animation:animation")
