@@ -7,10 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import upc.edu.pe.levelupjourney.R
-import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
 
 @Composable
 fun NicknameScreen(
@@ -43,8 +42,8 @@ fun NicknameScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo),
+            AsyncImage(
+                model = R.drawable.logo,
                 contentDescription = "Logo",
                 modifier = Modifier.size(80.dp)
             )

@@ -1,6 +1,5 @@
 package upc.edu.pe.levelupjourney.presentation.screen.community
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,16 +13,15 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.GroupAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
-import upc.edu.pe.levelupjourney.domain.model.Post
+import upc.edu.pe.levelupjourney.community.domain.model.Post
 
 @Composable
 fun CommunityScreen(
@@ -53,8 +51,8 @@ fun CommunityScreen(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
+                    AsyncImage(
+                        model = R.drawable.logo,
                         contentDescription = "App Logo",
                         modifier = Modifier
                             .size(24.dp)
@@ -145,8 +143,8 @@ fun PostItem(
         Spacer(Modifier.height(8.dp))
 
         // placeholder image
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+        AsyncImage(
+            model = R.drawable.ic_launcher_foreground,
             contentDescription = "Post image",
             modifier = Modifier
                 .fillMaxWidth()

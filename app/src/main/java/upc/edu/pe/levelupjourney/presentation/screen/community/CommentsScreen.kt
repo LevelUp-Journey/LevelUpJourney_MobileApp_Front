@@ -1,6 +1,5 @@
 package upc.edu.pe.levelupjourney.presentation.screen.community
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,11 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
-import upc.edu.pe.levelupjourney.domain.model.Post
-import upc.edu.pe.levelupjourney.domain.model.Comment
+import upc.edu.pe.levelupjourney.community.domain.model.Post
+import upc.edu.pe.levelupjourney.community.domain.model.Comment
 
 @Composable
 fun CommentsScreen(
@@ -68,8 +67,8 @@ fun CommentsScreen(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                AsyncImage(
+                    model = R.drawable.ic_launcher_foreground,
                     contentDescription = "Post image",
                     modifier = Modifier
                         .fillMaxWidth()

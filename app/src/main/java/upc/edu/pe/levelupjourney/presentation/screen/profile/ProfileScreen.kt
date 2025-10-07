@@ -1,6 +1,5 @@
 package upc.edu.pe.levelupjourney.presentation.screen.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,9 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
 
 @Composable
@@ -96,8 +95,8 @@ fun ProfileScreen(
                 }
             }
 
-            Image(
-                painter = painterResource(id = R.drawable.logo),
+            AsyncImage(
+                model = R.drawable.logo,
                 contentDescription = "App Logo",
                 modifier = Modifier
                     .size(100.dp)

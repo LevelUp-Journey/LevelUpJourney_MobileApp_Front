@@ -16,9 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
 
 @Composable
@@ -82,10 +82,9 @@ fun HomeScreen(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.logo),
+                    AsyncImage(
+                        model = R.drawable.logo,
                         contentDescription = "App Logo",
-                        tint = Color.Unspecified, //importante: evita que Compose pinte el logo de un color sólido
                         modifier = Modifier.size(28.dp)
                     )
                     Spacer(Modifier.size(6.dp))

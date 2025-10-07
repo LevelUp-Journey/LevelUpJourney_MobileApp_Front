@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    kotlin("kapt")
 }
 
 android {
@@ -42,15 +43,56 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
+    
+    // --- Jetpack Compose (UI base) ---
+    implementation("androidx.activity:activity-compose:1.9.2")
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
+    implementation("androidx.compose.ui:ui:1.7.4")
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.4")
+    implementation("androidx.compose.material3:material3:1.3.0")
     implementation("androidx.compose.material:material-icons-core:1.7.5")
     implementation("androidx.compose.material:material-icons-extended:1.7.5")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
+
+    // --- Navegación en Compose ---
+    implementation("androidx.navigation:navigation-compose:2.8.3")
+
+    // --- Corrutinas (para tareas asíncronas, sockets, peticiones) ---
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+
+    // --- HTTP y WebSockets (Ktor client) ---
+    implementation("io.ktor:ktor-client-android:3.0.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.0.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")
+    implementation("io.ktor:ktor-client-websockets:3.0.0")
+
+    // --- Autenticación con Google ---
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+    // --- Autenticación con GitHub (OAuth mediante navegador) ---
+    implementation("androidx.browser:browser:1.8.0")
+
+    // --- Base de datos local (Room) ---
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    // --- Manejo de imágenes (Coil) ---
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-svg:2.6.0")
+
+    // --- JSON más flexible (si prefieres Gson en lugar de kotlinx) ---
+    implementation("com.google.code.gson:gson:2.11.0")
+
+    // --- Seguridad en almacenamiento de tokens ---
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
+    // --- Animaciones y transiciones fluidas ---
+    implementation("androidx.compose.animation:animation:1.7.4")
+
+    // --- Testing dependencies ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

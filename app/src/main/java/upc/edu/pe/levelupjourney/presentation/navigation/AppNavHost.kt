@@ -19,8 +19,8 @@ import upc.edu.pe.levelupjourney.presentation.screen.profile.ProfileScreen
 import upc.edu.pe.levelupjourney.presentation.screen.settings.SettingsScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommunityScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommentsScreen
-import upc.edu.pe.levelupjourney.domain.model.Post
-import upc.edu.pe.levelupjourney.domain.model.Comment
+import upc.edu.pe.levelupjourney.community.domain.model.Post
+import upc.edu.pe.levelupjourney.community.domain.model.Comment
 import upc.edu.pe.levelupjourney.presentation.screen.game.GameFinishedScreen
 import upc.edu.pe.levelupjourney.presentation.screen.join.ConnectingScreen
 import upc.edu.pe.levelupjourney.presentation.screen.join.EnterPinScreen
