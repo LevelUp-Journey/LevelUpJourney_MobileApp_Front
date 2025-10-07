@@ -1,6 +1,5 @@
 package upc.edu.pe.levelupjourney.presentation.screen.userinfo
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,9 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
 
 @Composable
@@ -60,15 +59,15 @@ fun UserInfoScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
 
             Spacer(Modifier.height(24.dp))
 
-            Image(
-                painter = painterResource(id = R.drawable.logo),
+            AsyncImage(
+                model = R.drawable.logo,
                 contentDescription = "App Logo",
                 modifier = Modifier
                     .size(100.dp)
@@ -78,7 +77,7 @@ fun UserInfoScreen(
             Text(
                 text = "What's your name?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(bottom = 4.dp)
@@ -96,7 +95,7 @@ fun UserInfoScreen(
             Text(
                 text = "Enter a username",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(bottom = 4.dp)

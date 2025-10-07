@@ -9,8 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import upc.edu.pe.levelupjourney.presentation.screen.welcome.WelcomeScreen
-import upc.edu.pe.levelupjourney.presentation.screen.login.LoginScreen
-import upc.edu.pe.levelupjourney.presentation.screen.register.RegisterScreen
+import upc.edu.pe.levelupjourney.ui.screens.auth.LoginScreen
+import upc.edu.pe.levelupjourney.ui.screens.auth.SignUpScreen
 import upc.edu.pe.levelupjourney.presentation.screen.account.AccountTypeScreen
 import upc.edu.pe.levelupjourney.presentation.screen.userinfo.UserInfoScreen
 import upc.edu.pe.levelupjourney.presentation.screen.userinfo.BirthDateScreen
@@ -19,8 +19,8 @@ import upc.edu.pe.levelupjourney.presentation.screen.profile.ProfileScreen
 import upc.edu.pe.levelupjourney.presentation.screen.settings.SettingsScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommunityScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommentsScreen
-import upc.edu.pe.levelupjourney.domain.model.Post
-import upc.edu.pe.levelupjourney.domain.model.Comment
+import upc.edu.pe.levelupjourney.community.domain.model.Post
+import upc.edu.pe.levelupjourney.community.domain.model.Comment
 import upc.edu.pe.levelupjourney.presentation.screen.game.GameFinishedScreen
 import upc.edu.pe.levelupjourney.presentation.screen.join.ConnectingScreen
 import upc.edu.pe.levelupjourney.presentation.screen.join.EnterPinScreen
@@ -79,15 +79,20 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
         composable("login") {
             LoginScreen(
-                onBack = { navController.popBackStack() },
-                onLoginSuccess = { navController.navigate("accountType") }
+                onLoginSuccess = { 
+                    navController.navigate("home") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                },
+                onNavigateToSignUp = { navController.navigate("register") },
+                onBack = { navController.popBackStack() }
             )
         }
 
         composable("register") {
-            RegisterScreen(
-                onBack = { navController.popBackStack() },
-                onRegisterSuccess = { navController.navigate("accountType") }
+            SignUpScreen(
+                onSignUpSuccess = { navController.navigate("accountType") },
+                onNavigateToLogin = { navController.navigate("login") }
             )
         }
 

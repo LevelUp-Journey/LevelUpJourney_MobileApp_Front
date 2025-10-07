@@ -1,4 +1,4 @@
-package upc.edu.pe.levelupjourney.domain.model
+package upc.edu.pe.levelupjourney.community.domain.model
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue

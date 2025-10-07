@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Red Theme Colors based on #F32A27 -->
+    <color name="red_primary">#F32A27</color>
+    <color name="red_primary_variant">#D21E1B</color>
+    <color name="red_secondary">#FF6B68</color>
+    <color name="red_secondary_variant">#E53E3B</color>
+    <color name="red_surface">#FFF5F5</color>
+    <color name="red_background">#FFFBFB</color>
+    <color name="red_error">#B00020</color>
+    <color name="red_on_primary">#FFFFFF</color>
+    <color name="red_on_secondary">#FFFFFF</color>
+    <color name="red_on_surface">#000000</color>
+    <color name="red_on_background">#000000</color>
+    <color name="red_on_error">#FFFFFF</color>
+    
+    <!-- Legacy colors (keeping for compatibility) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>

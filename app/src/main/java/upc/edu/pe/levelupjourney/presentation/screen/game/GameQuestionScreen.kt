@@ -84,7 +84,7 @@ fun GameQuestionScreen(
                     ) {
                         AnswerButton(
                             text = question.options[0],
-                            color = Color.Blue,
+                            color = MaterialTheme.colorScheme.primary,
                             onClick = {
                                 selectedAnswer = 0
                                 isCorrect = selectedAnswer == question.correctIndex
@@ -94,7 +94,7 @@ fun GameQuestionScreen(
                         )
                         AnswerButton(
                             text = question.options[1],
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.secondary,
                             onClick = {
                                 selectedAnswer = 1
                                 isCorrect = selectedAnswer == question.correctIndex
@@ -109,7 +109,7 @@ fun GameQuestionScreen(
                     ) {
                         AnswerButton(
                             text = question.options[2],
-                            color = Color.Green,
+                            color = MaterialTheme.colorScheme.tertiary,
                             onClick = {
                                 selectedAnswer = 2
                                 isCorrect = selectedAnswer == question.correctIndex
@@ -119,7 +119,7 @@ fun GameQuestionScreen(
                         )
                         AnswerButton(
                             text = question.options[3],
-                            color = Color(0xFFFFA500),
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             onClick = {
                                 selectedAnswer = 3
                                 isCorrect = selectedAnswer == question.correctIndex
@@ -136,7 +136,7 @@ fun GameQuestionScreen(
                 ) {
                     AnswerButton(
                         text = question.options[0],
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.secondary,
                         onClick = {
                             selectedAnswer = 0
                             isCorrect = selectedAnswer == question.correctIndex
@@ -146,7 +146,7 @@ fun GameQuestionScreen(
                     )
                     AnswerButton(
                         text = question.options[1],
-                        color = Color.Blue,
+                        color = MaterialTheme.colorScheme.primary,
                         onClick = {
                             selectedAnswer = 1
                             isCorrect = selectedAnswer == question.correctIndex
@@ -169,7 +169,7 @@ fun AnswerButton(text: String, color: Color, onClick: () -> Unit, modifier: Modi
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(text = text, color = Color.White, fontSize = 18.sp)
+        Text(text = text, color = MaterialTheme.colorScheme.onPrimary, fontSize = 18.sp)
     }
 }
 
@@ -186,12 +186,12 @@ fun FeedbackScreen(isCorrect: Boolean, onNext: () -> Unit) {
     ) {
         if (isCorrect) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("✔", color = Color.Green, fontSize = 48.sp)
+                Text("✔", color = MaterialTheme.colorScheme.tertiary, fontSize = 48.sp)
                 Text("Correct! You are in the podium")
             }
         } else {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("✘", color = Color.Red, fontSize = 48.sp)
+                Text("✘", color = MaterialTheme.colorScheme.error, fontSize = 48.sp)
                 Text("Wrong! You are behind User56")
             }
         }
