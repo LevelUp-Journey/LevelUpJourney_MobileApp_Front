@@ -23,14 +23,16 @@ fun JoinContent() {
             text = "Join Game",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 32.dp)
+            modifier = Modifier.padding(bottom = 32.dp),
+            color = MaterialTheme.colorScheme.primary
         )
 
         Text(
             text = "Enter PIN",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(bottom = 24.dp),
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -43,7 +45,10 @@ fun JoinContent() {
                 onClick = { /* Navigate to PIN entry */ },
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
+                    .height(48.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Text("Enter PIN")
             }
@@ -54,12 +59,16 @@ fun JoinContent() {
                 onClick = { /* Navigate to QR scanner */ },
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
+                    .height(48.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Icon(
                     imageVector = Icons.Outlined.QrCodeScanner,
                     contentDescription = "QR Scanner",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Scan QR")

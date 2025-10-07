@@ -59,7 +59,7 @@ fun UserInfoScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -77,7 +77,7 @@ fun UserInfoScreen(
             Text(
                 text = "What's your name?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(bottom = 4.dp)
@@ -95,7 +95,7 @@ fun UserInfoScreen(
             Text(
                 text = "Enter a username",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .align(Alignment.Start)
                     .padding(bottom = 4.dp)

@@ -70,7 +70,6 @@ fun HomeScreen(
                     Icon(
                         imageVector = Icons.Outlined.AccountCircle,
                         contentDescription = "Profile",
-                        tint = Color.Black
                     )
                 }
 
@@ -84,7 +83,6 @@ fun HomeScreen(
                     Text(
                         text = "Level Up Journey",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = Color.Black
                     )
                 }
 
@@ -92,7 +90,6 @@ fun HomeScreen(
                     Icon(
                         imageVector = Icons.Outlined.Settings,
                         contentDescription = "Settings",
-                        tint = Color.Black
                     )
                 }
             }

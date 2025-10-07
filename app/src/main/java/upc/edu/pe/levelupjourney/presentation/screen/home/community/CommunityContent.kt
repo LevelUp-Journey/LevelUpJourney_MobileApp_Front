@@ -17,7 +17,8 @@ fun CommunityContent() {
     ) {
         Text(
             text = "Community content",
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

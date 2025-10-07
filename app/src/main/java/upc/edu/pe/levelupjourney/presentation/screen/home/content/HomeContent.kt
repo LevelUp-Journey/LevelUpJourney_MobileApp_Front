@@ -25,14 +25,13 @@ fun HomeContent() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .background(Color.White, RoundedCornerShape(16.dp))
-                .border(1.dp, Color(0xFFE7E3F3), RoundedCornerShape(16.dp)),
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Universidad anuncios",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
 
@@ -41,7 +40,7 @@ fun HomeContent() {
         Text(
             text = "Recent Games",
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = Color.Black
+            color = MaterialTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -66,20 +65,20 @@ private fun RecentGamePlaceholder() {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(Color.White, CircleShape)
-                .border(1.dp, Color(0xFFE7E3F3), CircleShape)
+                .background(MaterialTheme.colorScheme.surface, CircleShape)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
         )
         Spacer(Modifier.size(12.dp))
         Column {
             Text(
                 text = "Game title (backend)",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "Score: —",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF6B6B6B)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

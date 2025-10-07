@@ -1,6 +1,7 @@
 package upc.edu.pe.levelupjourney.presentation.screen.welcome
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
+import upc.edu.pe.levelupjourney.common.ui.components.GitHubIcon
 
 @Composable
 fun WelcomeScreen(
@@ -34,9 +36,9 @@ fun WelcomeScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFF32A27),
-                        Color(0xFFE53E3B),
-                        Color(0xFFD21E1B)
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                     )
                 )
             )
@@ -66,7 +68,7 @@ fun WelcomeScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 32.sp
                 ),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center
             )
             
@@ -76,7 +78,7 @@ fun WelcomeScreen(
             Text(
                 text = "Transform your classroom into an interactive gaming experience",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.White.copy(alpha = 0.9f),
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
             )
@@ -102,7 +104,7 @@ fun BottomRegistrationDrawer(
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 8.dp
@@ -120,7 +122,7 @@ fun BottomRegistrationDrawer(
                     .width(40.dp)
                     .height(4.dp)
                     .background(
-                        color = Color.Gray.copy(alpha = 0.3f),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                         shape = RoundedCornerShape(2.dp)
                     )
             )
@@ -133,7 +135,7 @@ fun BottomRegistrationDrawer(
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold
                 ),
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
             
@@ -142,7 +144,7 @@ fun BottomRegistrationDrawer(
             Text(
                 text = "Join thousands of educators revolutionizing their classrooms",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
             
@@ -155,14 +157,14 @@ fun BottomRegistrationDrawer(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF32A27)
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
                     Icons.Default.Code,
                     contentDescription = "GitHub Logo",
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -171,7 +173,7 @@ fun BottomRegistrationDrawer(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
             
@@ -199,7 +201,7 @@ fun BottomRegistrationDrawer(
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Medium
                     ),
-                    color = Color(0xFFF32A27)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             
@@ -216,18 +218,14 @@ fun BottomRegistrationDrawer(
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                AsyncImage(
-                    model = "file:///android_asset/github_light.svg",
-                    contentDescription = "GitHub Logo",
-                    modifier = Modifier.size(24.dp)
-                )
+                GitHubIcon(modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     "Continue with GitHub",
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.Medium
                     ),
-                    color = Color(0xFFF32A27)
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             
@@ -242,7 +240,7 @@ fun BottomRegistrationDrawer(
                 Text(
                     text = "Already have an account? ",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 TextButton(
                     onClick = onNavigateToLogin,
@@ -253,7 +251,7 @@ fun BottomRegistrationDrawer(
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
-                        color = Color(0xFFF32A27)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
