@@ -11,11 +11,11 @@ import androidx.navigation.compose.rememberNavController
 import upc.edu.pe.levelupjourney.presentation.screen.welcome.WelcomeScreen
 import upc.edu.pe.levelupjourney.ui.screens.auth.LoginScreen
 import upc.edu.pe.levelupjourney.ui.screens.auth.SignUpScreen
-import upc.edu.pe.levelupjourney.presentation.screen.account.AccountTypeScreen
-import upc.edu.pe.levelupjourney.presentation.screen.userinfo.UserInfoScreen
-import upc.edu.pe.levelupjourney.presentation.screen.userinfo.BirthDateScreen
-import upc.edu.pe.levelupjourney.presentation.screen.home.HomeScreen
-import upc.edu.pe.levelupjourney.presentation.screen.profile.ProfileScreen
+import upc.edu.pe.levelupjourney.ui.screens.auth.TeacherVerificationScreen
+import upc.edu.pe.levelupjourney.presentation.screen.main.MainScreen
+import upc.edu.pe.levelupjourney.presentation.screen.join.JoinScreen
+import upc.edu.pe.levelupjourney.presentation.screen.join.PinJoinScreen
+import upc.edu.pe.levelupjourney.presentation.screen.join.QRScanScreen
 import upc.edu.pe.levelupjourney.presentation.screen.settings.SettingsScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommunityScreen
 import upc.edu.pe.levelupjourney.presentation.screen.community.CommentsScreen
@@ -80,7 +80,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = { 
-                    navController.navigate("home") {
+                    navController.navigate("main") {
                         popUpTo("welcome") { inclusive = true }
                     }
                 },
@@ -91,50 +91,72 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
         composable("register") {
             SignUpScreen(
-                onSignUpSuccess = { navController.navigate("accountType") },
-                onNavigateToLogin = { navController.navigate("login") }
+                onSignUpSuccess = { email: String, name: String, password: String ->
+                    if ((email as String).startsWith("pc") && (email as String).endsWith("@upc.edu.pe")) {
+                        // Teacher - go to verification (pass data for later registration)
+                        navController.navigate("teacherVerification/$email/$name/$password")
+                    } else {
+                        // Student - registration completed, go directly to main
+                        navController.navigate("main") {
+                            popUpTo("welcome") { inclusive = true }
+                        }
+                    }
+                },
+                onNavigateToLogin = { navController.navigate("login") },
+                onBack = { navController.popBackStack() }
             )
         }
 
-        composable("accountType") {
-            AccountTypeScreen(
+        composable("teacherVerification/{email}/{name}/{password}") { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val name = backStackEntry.arguments?.getString("name") ?: ""
+            val password = backStackEntry.arguments?.getString("password") ?: ""
+            TeacherVerificationScreen(
+                email = email,
+                name = name,
+                password = password,
+                onVerificationSuccess = {
+                    navController.navigate("main") {
+                        popUpTo("welcome") { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("main") {
+            MainScreen(
+                onProfileClick = { /* No profile functionality */ },
+                onMenuClick = { navController.navigate("settings") }
+            )
+        }
+
+        composable("join") {
+            JoinScreen(
+                onProfileClick = { /* No profile functionality */ },
+                onMenuClick = { navController.navigate("settings") },
+                onQRScanClick = { navController.navigate("qrScan") },
+                onPinJoinClick = { navController.navigate("pinJoin") }
+            )
+        }
+
+        composable("qrScan") {
+            QRScanScreen(
                 onBack = { navController.popBackStack() },
-                onTeacherSelected = { navController.navigate("userInfo") },
-                onStudentSelected = { navController.navigate("userInfo") }
+                onScanSuccess = { 
+                    // Navigate to joined activity or main
+                    navController.navigate("main")
+                }
             )
         }
 
-        composable("userInfo") {
-            UserInfoScreen(
+        composable("pinJoin") {
+            PinJoinScreen(
                 onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("birthDate") }
-            )
-        }
-
-        composable("birthDate") {
-            BirthDateScreen(
-                onBack = { navController.popBackStack() },
-                onContinue = { navController.navigate("home") }
-            )
-        }
-
-        composable("home") {
-            HomeScreen(
-                onProfileClick = { navController.navigate("profile") },
-                onSettingsClick = { navController.navigate("settings") },
-                onJoinTabClick = { navController.navigate("join") },
-                onCommunityTabClick = { navController.navigate("community") }
-            )
-        }
-
-        composable("profile") {
-            ProfileScreen(
-                onClose = { navController.popBackStack() },
-                onSettingsClick = { navController.navigate("settings") },
-                onEditClick = { /* TODO */ },
-                onHomeClick = { navController.navigate("home") },
-                onJoinClick = { navController.navigate("join") },
-                onCommunityClick = { navController.navigate("community") }
+                onJoinSuccess = { 
+                    // Navigate to joined activity or main
+                    navController.navigate("main")
+                }
             )
         }
 
@@ -154,7 +176,7 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                 posts = posts,
                 onPostSelected = { post -> navController.navigate("comments/${post.id}") },
                 onSettingsClick = { navController.navigate("settings") },
-                onHomeClick = { navController.navigate("home") },
+                onHomeClick = { navController.navigate("main") },
                 onJoinClick = { navController.navigate("join") },
                 onProfileClick = { navController.navigate("profile") },
                 onCommunityClick = { /* stay in community */ }

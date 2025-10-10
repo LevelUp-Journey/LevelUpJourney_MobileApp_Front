@@ -31,7 +31,7 @@ fun CommentsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
@@ -47,7 +47,8 @@ fun CommentsScreen(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -95,7 +96,7 @@ fun CommentsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextField(

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import upc.edu.pe.levelupjourney.presentation.components.AppHeader
+import upc.edu.pe.levelupjourney.presentation.screen.join.JoinScreen
 import upc.edu.pe.levelupjourney.classactivitites.domain.model.entities.Quiz
 import upc.edu.pe.levelupjourney.classactivitites.repositories.QuizRepository
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModel
@@ -100,7 +101,12 @@ fun MainScreen(
                     quizzes = quizzes,
                     onRefresh = { quizViewModel.fetchMyQuizzes(testUserId) }
                 )
-                1 -> JoinContent()
+                1 -> JoinScreen(
+                    onProfileClick = { /* No profile functionality */ },
+                    onMenuClick = onMenuClick,
+                    onQRScanClick = { /* TODO: Navigate to QR scan */ },
+                    onPinJoinClick = { /* TODO: Navigate to PIN join */ }
+                )
                 2 -> CommunityContent()
             }
         }
@@ -343,19 +349,7 @@ fun QuizCard(quiz: Quiz) {
     }
 }
 
-@Composable
-fun JoinContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Join Content\n(En desarrollo)",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-    }
-}
+
 
 @Composable
 fun CommunityContent() {

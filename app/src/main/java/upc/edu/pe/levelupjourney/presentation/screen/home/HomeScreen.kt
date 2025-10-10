@@ -30,6 +30,7 @@ fun HomeScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
