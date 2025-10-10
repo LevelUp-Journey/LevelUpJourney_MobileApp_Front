@@ -12,6 +12,7 @@ import upc.edu.pe.levelupjourney.classactivitites.api.QuizApiService
 
 object ApiClient {
     private const val BASE_URL = "http://192.168.0.119:8081" // For Android emulator pointing to localhost
+    private const val QUIZ_BASE_URL = "http://192.168.0.119:8086" // Quiz service base URL
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -73,6 +74,12 @@ object ApiClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
+    val quizRetrofit: Retrofit = Retrofit.Builder()
+        .baseUrl(QUIZ_BASE_URL)
+        .client(authenticatedClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
     // API service instances
     val authApiService: AuthApiService by lazy {
         retrofit.create(AuthApiService::class.java)
@@ -83,7 +90,7 @@ object ApiClient {
     }
 
     val quizApiService: QuizApiService by lazy {
-        authenticatedRetrofit.create(QuizApiService::class.java)
+        quizRetrofit.create(QuizApiService::class.java)
     }
 
     // Initialize with auth repository for token injection
