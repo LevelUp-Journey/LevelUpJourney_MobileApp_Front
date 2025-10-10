@@ -1,6 +1,7 @@
 package upc.edu.pe.levelupjourney.iam.repositories
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -26,16 +27,44 @@ class AuthRepository(
 
     suspend fun signIn(email: String, password: String): Result<AuthenticatedUser> {
         return try {
-            val response = apiService.signIn(SignInRequest(email, password))
+            Log.d("AuthRepository", "=== STARTING SIGN IN PROCESS ===")
+            Log.d("AuthRepository", "Email: $email")
+            Log.d("AuthRepository", "Password: ${password.take(3)}***")
+            
+            val request = SignInRequest(email, password)
+            Log.d("AuthRepository", "Created SignInRequest: $request")
+            
+            val response = apiService.signIn(request)
+            Log.d("AuthRepository", "API Response Code: ${response.code()}")
+            Log.d("AuthRepository", "API Response Message: ${response.message()}")
+            
             if (response.isSuccessful) {
                 response.body()?.let { user ->
+                    Log.d("AuthRepository", "=== SIGN IN SUCCESSFUL ===")
+                    Log.d("AuthRepository", "User ID: ${user.id}")
+                    Log.d("AuthRepository", "User Email: ${user.email_address}")
+                    Log.d("AuthRepository", "Access Token: ${user.accessToken}")
+                    Log.d("AuthRepository", "Refresh Token: ${user.refreshToken}")
+                    
                     saveUserData(user)
+                    Log.d("AuthRepository", "User data saved to DataStore")
                     Result.success(user)
-                } ?: Result.failure(Exception("Empty response"))
+                } ?: run {
+                    Log.e("AuthRepository", "Response body is null despite successful response")
+                    Result.failure(Exception("Empty response"))
+                }
             } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("AuthRepository", "=== SIGN IN FAILED ===")
+                Log.e("AuthRepository", "Error Code: ${response.code()}")
+                Log.e("AuthRepository", "Error Message: ${response.message()}")
+                Log.e("AuthRepository", "Error Body: $errorBody")
                 Result.failure(Exception("Sign-in failed: ${response.message()}"))
             }
         } catch (e: Exception) {
+            Log.e("AuthRepository", "=== SIGN IN EXCEPTION ===", e)
+            Log.e("AuthRepository", "Exception type: ${e.javaClass.simpleName}")
+            Log.e("AuthRepository", "Exception message: ${e.message}")
             Result.failure(e)
         }
     }
@@ -74,12 +103,24 @@ class AuthRepository(
     }
 
     private suspend fun saveUserData(user: AuthenticatedUser) {
+        Log.d("AuthRepository", "=== SAVING USER DATA ===")
+        Log.d("AuthRepository", "Saving Access Token: ${user.accessToken}")
+        Log.d("AuthRepository", "Saving Refresh Token: ${user.refreshToken}")
+        Log.d("AuthRepository", "Saving User ID: ${user.id}")
+        Log.d("AuthRepository", "Saving User Email: ${user.email_address}")
+        
         context.dataStore.edit { prefs ->
             prefs[ACCESS_TOKEN_KEY] = user.accessToken
             prefs[REFRESH_TOKEN_KEY] = user.refreshToken
             prefs[USER_ID_KEY] = user.id
             prefs[USER_EMAIL_KEY] = user.email_address
         }
+        
+        Log.d("AuthRepository", "User data saved successfully to DataStore")
+        
+        // Verify saved data
+        val savedToken = getAccessToken()
+        Log.d("AuthRepository", "Verification - Saved token: $savedToken")
     }
 
     private suspend fun updateTokens(accessToken: String, refreshToken: String) {
@@ -90,9 +131,11 @@ class AuthRepository(
     }
 
     suspend fun getAccessToken(): String? {
-        return context.dataStore.data.map { prefs ->
+        val token = context.dataStore.data.map { prefs ->
             prefs[ACCESS_TOKEN_KEY]
         }.first()
+        Log.d("AuthRepository", "Retrieved access token: $token")
+        return token
     }
 
     private suspend fun getRefreshToken(): String? {

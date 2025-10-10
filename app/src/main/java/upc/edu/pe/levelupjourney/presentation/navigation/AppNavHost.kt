@@ -133,8 +133,6 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
         composable("join") {
             JoinScreen(
-                onProfileClick = { /* No profile functionality */ },
-                onMenuClick = { navController.navigate("settings") },
                 onQRScanClick = { navController.navigate("qrScan") },
                 onPinJoinClick = { navController.navigate("pinJoin") }
             )
