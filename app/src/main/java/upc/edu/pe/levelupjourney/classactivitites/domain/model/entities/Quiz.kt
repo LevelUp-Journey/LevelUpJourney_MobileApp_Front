@@ -31,7 +31,7 @@ data class Quiz(
     val updatedAt: String,
     
     @SerializedName("questions")
-    val questions: List<Any> = emptyList()
+    val questions: List<Question> = emptyList()
 )
 
 data class CreatorId(
