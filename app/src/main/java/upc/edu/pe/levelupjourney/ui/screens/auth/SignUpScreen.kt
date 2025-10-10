@@ -38,7 +38,7 @@ import upc.edu.pe.levelupjourney.iam.api.ApiClient
 
 @Composable
 fun SignUpScreen(
-    onSignUpSuccess: (String) -> Unit, // Pass email for teacher verification
+    onSignUpSuccess: (String, String, String) -> Unit, // Pass email, name, password for teacher verification
     onNavigateToLogin: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -47,7 +47,7 @@ fun SignUpScreen(
     val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(authRepository))
     
     var name by remember { mutableStateOf("Juan Pérez") }
-    var email by remember { mutableStateOf("202110123@upc.edu.pe") }
+    var email by remember { mutableStateOf("pcsiub@upc.edu.pe") }
     var password by remember { mutableStateOf("Teacher123") }
     var confirmPassword by remember { mutableStateOf("Teacher123") }
     var nameError by remember { mutableStateOf<String?>(null) }
@@ -61,10 +61,8 @@ fun SignUpScreen(
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
-            // For students, go directly to main screen
-            if (!((email as String).endsWith("@upc.edu.pe") && email.contains(Regex("^\\d+@upc\\.edu\\.pe$")))) {
-                onSignUpSuccess(email)
-            }
+            // For students only - teachers go to verification first
+            onSignUpSuccess(email, name, password)
         }
     }
 
@@ -359,10 +357,10 @@ fun SignUpScreen(
                     val confirmPasswordValid = validateConfirmPassword()
                     
                     if (nameValid && emailValid && passwordValid && confirmPasswordValid) {
-                        // Check if email indicates teacher (format: numbers@upc.edu.pe)
-                        if ((email as String).endsWith("@upc.edu.pe") && email.contains(Regex("^\\d+@upc\\.edu\\.pe$"))) {
-                            // Teacher detected - navigate to verification screen
-                            onSignUpSuccess(email)
+                        // Check if email indicates teacher (format: pc*@upc.edu.pe)
+                        if ((email as String).startsWith("pc") && (email as String).endsWith("@upc.edu.pe")) {
+                            // Teacher detected - navigate to verification screen (don't register yet)
+                            onSignUpSuccess(email, name, password)
                         } else {
                             // Student - register normally
                             viewModel.signUp(email, password)
