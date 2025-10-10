@@ -1,218 +1,444 @@
 package upc.edu.pe.levelupjourney.ui.screens.auth
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import upc.edu.pe.levelupjourney.iam.api.ApiClient
-import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
-import upc.edu.pe.levelupjourney.ui.viewmodels.AuthState
+import upc.edu.pe.levelupjourney.R
 import upc.edu.pe.levelupjourney.ui.viewmodels.AuthViewModel
+import upc.edu.pe.levelupjourney.ui.viewmodels.AuthState
 import upc.edu.pe.levelupjourney.ui.viewmodels.AuthViewModelFactory
+import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.iam.api.ApiClient
 
 @Composable
 fun SignUpScreen(
-    onSignUpSuccess: () -> Unit,
+    onSignUpSuccess: (String) -> Unit, // Pass email for teacher verification
     onNavigateToLogin: () -> Unit,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(
-            AuthRepository(
-                LocalContext.current,
-                ApiClient.authApiService
-            ).also { ApiClient.initialize(it) }
-        )
-    )
+    onBack: () -> Unit
 ) {
-    var email by remember { mutableStateOf("test@example.com") }
-    var password by remember { mutableStateOf("TestPass123") }
-    var confirmPassword by remember { mutableStateOf("TestPass123") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-
+    val context = LocalContext.current
+    val authRepository = remember { AuthRepository(context, ApiClient.authApiService) }
+    val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(authRepository))
+    
+    var name by remember { mutableStateOf("Juan Pérez") }
+    var email by remember { mutableStateOf("202110123@upc.edu.pe") }
+    var password by remember { mutableStateOf("Teacher123") }
+    var confirmPassword by remember { mutableStateOf("Teacher123") }
+    var nameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     val authState by viewModel.authState.collectAsState()
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
-            onSignUpSuccess()
+            // For students, go directly to main screen
+            if (!((email as String).endsWith("@upc.edu.pe") && email.contains(Regex("^\\d+@upc\\.edu\\.pe$")))) {
+                onSignUpSuccess(email)
+            }
         }
+    }
+
+    fun validateName(): Boolean {
+        nameError = if (name.isBlank()) "El nombre es requerido" 
+                   else if (name.length < 2) "El nombre debe tener al menos 2 caracteres" 
+                   else null
+        return nameError == null
     }
 
     fun validateEmail(): Boolean {
         val isValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        emailError = when {
-            email.isBlank() -> "Email is required"
-            !isValid -> "Please enter a valid email address"
-            else -> null
-        }
+        emailError = if (email.isBlank()) "El email es requerido"
+                    else if (!isValid) "Ingresa un email válido" 
+                    else null
         return emailError == null
     }
 
     fun validatePassword(): Boolean {
         passwordError = when {
-            password.isBlank() -> "Password is required"
-            password.length < 8 -> "Password must be at least 8 characters"
-            !password.any { it.isUpperCase() } -> "Password must contain at least one uppercase letter"
-            !password.any { it.isLowerCase() } -> "Password must contain at least one lowercase letter"
-            !password.any { it.isDigit() } -> "Password must contain at least one number"
+            password.isBlank() -> "La contraseña es requerida"
+            password.length < 6 -> "La contraseña debe tener al menos 6 caracteres"
+            !password.any { it.isUpperCase() } -> "Debe contener al menos una mayúscula"
+            !password.any { it.isDigit() } -> "Debe contener al menos un número"
             else -> null
         }
         return passwordError == null
     }
 
     fun validateConfirmPassword(): Boolean {
-        confirmPasswordError = when {
-            confirmPassword.isBlank() -> "Please confirm your password"
-            confirmPassword != password -> "Passwords do not match"
-            else -> null
-        }
+        confirmPasswordError = if (confirmPassword != password) "Las contraseñas no coinciden" else null
         return confirmPasswordError == null
     }
 
-    fun validateForm(): Boolean {
-        return validateEmail() && validatePassword() && validateConfirmPassword()
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Top spacer to center content vertically
-        Spacer(modifier = Modifier.weight(0.5f))
-
-        Text(
-            text = "Create Account",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = {
-                email = it
-                if (emailError != null) validateEmail()
-            },
-            label = { Text("Email") },
-            placeholder = { Text("Enter your email address") },
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth(),
-            isError = emailError != null,
-            supportingText = emailError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                if (passwordError != null) validatePassword()
-                if (confirmPasswordError != null && confirmPassword.isNotBlank()) validateConfirmPassword()
-            },
-            label = { Text("Password") },
-            placeholder = { Text("Create a strong password") },
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(
-                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
-                    )
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            isError = passwordError != null,
-            supportingText = passwordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = {
-                confirmPassword = it
-                if (confirmPasswordError != null) validateConfirmPassword()
-            },
-            label = { Text("Confirm Password") },
-            placeholder = { Text("Re-enter your password") },
-            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            trailingIcon = {
-                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                    Icon(
-                        imageVector = if (confirmPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
-                    )
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            isError = confirmPasswordError != null,
-            supportingText = confirmPasswordError?.let { { Text(it, color = MaterialTheme.colorScheme.error) } }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Password must contain at least 8 characters with uppercase, lowercase, and numbers",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                if (validateForm()) {
-                    viewModel.signUp(email, password)
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = authState !is AuthState.Loading && email.isNotBlank() && password.isNotBlank() && confirmPassword.isNotBlank()
-        ) {
-            if (authState is AuthState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
-            } else {
-                Text("Create Account")
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextButton(onClick = onNavigateToLogin) {
-            Text("Already have an account? Sign In")
-        }
-
-        if (authState is AuthState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Logo
+            Card(
+                modifier = Modifier.size(120.dp),
+                shape = RoundedCornerShape(60.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.pet_sat),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Título
             Text(
-                text = (authState as AuthState.Error).message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
+                text = "Crear tu cuenta",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp
+                ),
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
             )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Únete a la revolución educativa",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Formulario
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Campo Nombre
+                    Column {
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { 
+                                name = it
+                                if (nameError != null) validateName()
+                            },
+                            label = { Text("Nombre completo") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = "Nombre",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            isError = nameError != null,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        nameError?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                    
+                    // Campo Email
+                    Column {
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { 
+                                email = it
+                                if (emailError != null) validateEmail()
+                            },
+                            label = { Text("Email") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Email,
+                                    contentDescription = "Email",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            isError = emailError != null,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        emailError?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                    
+                    // Campo Contraseña
+                    Column {
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { 
+                                password = it
+                                if (passwordError != null) validatePassword()
+                                if (confirmPassword.isNotEmpty() && confirmPasswordError != null) {
+                                    validateConfirmPassword()
+                                }
+                            },
+                            label = { Text("Contraseña") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Lock,
+                                    contentDescription = "Contraseña",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(
+                                        imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            isError = passwordError != null,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        passwordError?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                    
+                    // Campo Confirmar Contraseña
+                    Column {
+                        OutlinedTextField(
+                            value = confirmPassword,
+                            onValueChange = { 
+                                confirmPassword = it
+                                if (confirmPasswordError != null) validateConfirmPassword()
+                            },
+                            label = { Text("Confirmar contraseña") },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Lock,
+                                    contentDescription = "Confirmar contraseña",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingIcon = {
+                                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = if (confirmPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            isError = confirmPasswordError != null,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary
+                            )
+                        )
+                        confirmPasswordError?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Botón de Registro
+            Button(
+                onClick = {
+                    val nameValid = validateName()
+                    val emailValid = validateEmail()
+                    val passwordValid = validatePassword()
+                    val confirmPasswordValid = validateConfirmPassword()
+                    
+                    if (nameValid && emailValid && passwordValid && confirmPasswordValid) {
+                        // Check if email indicates teacher (format: numbers@upc.edu.pe)
+                        if ((email as String).endsWith("@upc.edu.pe") && email.contains(Regex("^\\d+@upc\\.edu\\.pe$"))) {
+                            // Teacher detected - navigate to verification screen
+                            onSignUpSuccess(email)
+                        } else {
+                            // Student - register normally
+                            viewModel.signUp(email, password)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                enabled = authState !is AuthState.Loading
+            ) {
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Crear Cuenta",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Error del estado
+            if (authState is AuthState.Error) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = (authState as AuthState.Error).message,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            // Enlace a login
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "¿Ya tienes cuenta? ",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                TextButton(onClick = onNavigateToLogin) {
+                    Text(
+                        text = "Inicia sesión",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
-
-        // Bottom spacer to center content
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
