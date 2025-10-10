@@ -5,6 +5,8 @@ import android.util.Log
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -15,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -30,14 +33,21 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import java.util.concurrent.Executors
+import kotlin.math.abs
 
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QRCodeScanner(
     onQRCodeScanned: (String) -> Unit,
     onClose: () -> Unit
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    
+    val animatedOffset by animateFloatAsState(
+        targetValue = offsetX,
+        label = "swipe"
+    )
     
     LaunchedEffect(Unit) {
         if (!cameraPermissionState.status.isGranted) {
@@ -45,46 +55,41 @@ fun QRCodeScanner(
         }
     }
     
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Scan QR Code",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Close"
-                        )
+    // Fullscreen camera without Scaffold/TopBar
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset(x = animatedOffset.dp)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (abs(offsetX) > 100f) {
+                            if (offsetX > 0) {
+                                onClose()
+                            }
+                        }
+                        offsetX = 0f
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        val newOffset = offsetX + dragAmount
+                        if (newOffset >= 0) {
+                            offsetX = newOffset.coerceAtMost(300f)
+                        }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
                 )
-            )
-        }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            when {
-                cameraPermissionState.status.isGranted -> {
-                    CameraPreview(
-                        onQRCodeScanned = onQRCodeScanned,
-                        onClose = onClose
-                    )
-                }
-                else -> {
-                    CameraPermissionRequest(
-                        permissionState = cameraPermissionState
-                    )
-                }
+            }
+    ) {
+        when {
+            cameraPermissionState.status.isGranted -> {
+                CameraPreview(
+                    onQRCodeScanned = onQRCodeScanned,
+                    onClose = onClose
+                )
+            }
+            else -> {
+                CameraPermissionRequest(
+                    permissionState = cameraPermissionState
+                )
             }
         }
     }
@@ -187,6 +192,24 @@ fun CameraPreview(
             modifier = Modifier.fillMaxSize()
         )
         
+        // Close button at top
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .size(48.dp),
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = "Close",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        
         // Overlay with instructions
         Column(
             modifier = Modifier
@@ -207,11 +230,17 @@ fun CameraPreview(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
+                        text = "Scan QR Code",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
                         text = "Point your camera at a QR code",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "The code will be scanned automatically",
                         style = MaterialTheme.typography.bodySmall,

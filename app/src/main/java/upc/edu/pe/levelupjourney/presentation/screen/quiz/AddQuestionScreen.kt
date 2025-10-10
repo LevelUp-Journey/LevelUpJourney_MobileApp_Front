@@ -2,15 +2,18 @@ package upc.edu.pe.levelupjourney.presentation.screen.quiz
 
 import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -246,48 +249,98 @@ fun AddQuestionScreen(
                     Text(
                         text = "Answers *",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Select the correct answer",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     
-                    answers.forEachIndexed { index, answer ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            RadioButton(
-                                selected = correctAnswerIndex == index,
-                                onClick = { correctAnswerIndex = index }
-                            )
-                            
-                            OutlinedTextField(
-                                value = answer,
-                                onValueChange = { newValue ->
-                                    answers = answers.toMutableList().apply {
-                                        this[index] = newValue
+                            answers.forEachIndexed { index, answer ->
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (correctAnswerIndex == index) 
+                                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                        else 
+                                            MaterialTheme.colorScheme.surface
+                                    ),
+                                    shape = RoundedCornerShape(10.dp),
+                                    border = if (correctAnswerIndex == index)
+                                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                                    else null
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(4.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        RadioButton(
+                                            selected = correctAnswerIndex == index,
+                                            onClick = { correctAnswerIndex = index },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = MaterialTheme.colorScheme.primary
+                                            )
+                                        )
+                                        
+                                        OutlinedTextField(
+                                            value = answer,
+                                            onValueChange = { newValue ->
+                                                answers = answers.toMutableList().apply {
+                                                    this[index] = newValue
+                                                }
+                                            },
+                                            modifier = Modifier.weight(1f),
+                                            placeholder = { 
+                                                Text(
+                                                    "Answer ${index + 1}",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                ) 
+                                            },
+                                            singleLine = true,
+                                            enabled = selectedType != "TRUE_FALSE",
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                                disabledTextColor = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
                                     }
-                                },
-                                modifier = Modifier.weight(1f),
-                                placeholder = { Text("Answer ${index + 1}") },
-                                singleLine = true,
-                                enabled = selectedType != "TRUE_FALSE",
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                        }
-                        if (index < answers.size - 1) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                    
-                    if (selectedType == "MULTIPLE_CHOICE" && answers.size < 6) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedButton(
-                            onClick = {
-                                answers = answers + ""
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("+ Add Answer")
+                                }
+                            }
+                            
+                            if (selectedType == "MULTIPLE_CHOICE" && answers.size < 6) {
+                                OutlinedButton(
+                                    onClick = {
+                                        answers = answers + ""
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Add Answer Option")
+                                }
+                            }
                         }
                     }
                 }
