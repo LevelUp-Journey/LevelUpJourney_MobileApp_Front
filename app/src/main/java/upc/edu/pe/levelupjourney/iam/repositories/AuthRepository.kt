@@ -42,9 +42,9 @@ class AuthRepository(
                 response.body()?.let { user ->
                     Log.d("AuthRepository", "=== SIGN IN SUCCESSFUL ===")
                     Log.d("AuthRepository", "User ID: ${user.id}")
-                    Log.d("AuthRepository", "User Email: ${user.email_address}")
-                    Log.d("AuthRepository", "Access Token: ${user.accessToken}")
-                    Log.d("AuthRepository", "Refresh Token: ${user.refreshToken}")
+                    Log.d("AuthRepository", "User Email: ${user.email}")
+                    Log.d("AuthRepository", "Access Token: ${user.token.take(20)}...")
+                    Log.d("AuthRepository", "Refresh Token: ${user.refreshToken.take(20)}...")
                     
                     saveUserData(user)
                     Log.d("AuthRepository", "User data saved to DataStore")
@@ -71,16 +71,39 @@ class AuthRepository(
 
     suspend fun signUp(email: String, password: String): Result<AuthenticatedUser> {
         return try {
-            val response = apiService.signUp(SignUpRequest(email, password))
+            Log.d("AuthRepository", "=== STARTING SIGN UP PROCESS ===")
+            Log.d("AuthRepository", "Email: $email")
+            
+            val request = SignUpRequest(email, password)
+            val response = apiService.signUp(request)
+            
+            Log.d("AuthRepository", "API Response Code: ${response.code()}")
+            
             if (response.isSuccessful) {
-                response.body()?.let { user ->
-                    saveUserData(user)
-                    Result.success(user)
-                } ?: Result.failure(Exception("Empty response"))
+                response.body()?.let { signUpResponse ->
+                    Log.d("AuthRepository", "=== SIGN UP SUCCESSFUL ===")
+                    Log.d("AuthRepository", "User ID: ${signUpResponse.id}")
+                    Log.d("AuthRepository", "Username: ${signUpResponse.username}")
+                    Log.d("AuthRepository", "Note: Sign up successful, but user needs to sign in to get token")
+                    
+                    // SignUp no retorna token, entonces retornamos un error indicando que debe hacer sign-in
+                    // O mejor aún, hacemos sign-in automáticamente
+                    Log.d("AuthRepository", "Performing automatic sign-in after sign-up...")
+                    return signIn(email, password)
+                } ?: run {
+                    Log.e("AuthRepository", "Response body is null despite successful response")
+                    Result.failure(Exception("Empty response"))
+                }
             } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("AuthRepository", "=== SIGN UP FAILED ===")
+                Log.e("AuthRepository", "Error Code: ${response.code()}")
+                Log.e("AuthRepository", "Error Message: ${response.message()}")
+                Log.e("AuthRepository", "Error Body: $errorBody")
                 Result.failure(Exception("Sign-up failed: ${response.message()}"))
             }
         } catch (e: Exception) {
+            Log.e("AuthRepository", "=== SIGN UP EXCEPTION ===", e)
             Result.failure(e)
         }
     }
@@ -104,16 +127,16 @@ class AuthRepository(
 
     private suspend fun saveUserData(user: AuthenticatedUser) {
         Log.d("AuthRepository", "=== SAVING USER DATA ===")
-        Log.d("AuthRepository", "Saving Access Token: ${user.accessToken}")
-        Log.d("AuthRepository", "Saving Refresh Token: ${user.refreshToken}")
+        Log.d("AuthRepository", "Saving Access Token: ${user.token.take(20)}...")
+        Log.d("AuthRepository", "Saving Refresh Token: ${user.refreshToken.take(20)}...")
         Log.d("AuthRepository", "Saving User ID: ${user.id}")
-        Log.d("AuthRepository", "Saving User Email: ${user.email_address}")
+        Log.d("AuthRepository", "Saving User Email: ${user.email}")
         
         context.dataStore.edit { prefs ->
-            prefs[ACCESS_TOKEN_KEY] = user.accessToken
+            prefs[ACCESS_TOKEN_KEY] = user.token
             prefs[REFRESH_TOKEN_KEY] = user.refreshToken
             prefs[USER_ID_KEY] = user.id
-            prefs[USER_EMAIL_KEY] = user.email_address
+            prefs[USER_EMAIL_KEY] = user.email
         }
         
         Log.d("AuthRepository", "User data saved successfully to DataStore")

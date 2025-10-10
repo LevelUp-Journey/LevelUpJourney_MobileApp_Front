@@ -10,7 +10,7 @@ interface AuthApiService {
     suspend fun signIn(@Body request: SignInRequest): Response<AuthenticatedUser>
 
     @POST("/api/v1/authentication/sign-up")
-    suspend fun signUp(@Body request: SignUpRequest): Response<AuthenticatedUser>
+    suspend fun signUp(@Body request: SignUpRequest): Response<SignUpResponse>
 
     @POST("/api/v1/authentication/refresh")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<TokenResponse>

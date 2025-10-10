@@ -13,9 +13,14 @@ data class SignUpRequest(
 
 data class AuthenticatedUser(
     val id: String,
-    val email_address: String,
-    val accessToken: String,
+    val email: String,
+    val token: String,
     val refreshToken: String
+)
+
+data class SignUpResponse(
+    val id: String,
+    val username: String,
 )
 
 data class RefreshTokenRequest(
