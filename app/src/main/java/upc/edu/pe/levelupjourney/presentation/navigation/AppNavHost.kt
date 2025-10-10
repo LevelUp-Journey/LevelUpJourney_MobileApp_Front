@@ -28,7 +28,13 @@ import upc.edu.pe.levelupjourney.presentation.screen.game.GameQuestionScreen
 import upc.edu.pe.levelupjourney.presentation.screen.game.Question
 import upc.edu.pe.levelupjourney.presentation.screen.join.JoinGameScreen
 import upc.edu.pe.levelupjourney.presentation.screen.join.NicknameScreen
-
+import upc.edu.pe.levelupjourney.presentation.screen.quiz.CreateQuizScreen
+import upc.edu.pe.levelupjourney.presentation.screen.quiz.QuizQuestionsScreen
+import upc.edu.pe.levelupjourney.presentation.screen.quiz.AddQuestionScreen
+import upc.edu.pe.levelupjourney.presentation.screen.quiz.EditQuestionScreen
+import upc.edu.pe.levelupjourney.presentation.screen.profile.ProfileScreen
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 @Composable
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
@@ -126,8 +132,76 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
 
         composable("main") {
             MainScreen(
-                onProfileClick = { /* No profile functionality */ },
-                onMenuClick = { navController.navigate("settings") }
+                onProfileClick = { navController.navigate("profile") },
+                onMenuClick = { navController.navigate("settings") },
+                onCreateQuizClick = { navController.navigate("quiz/create") }
+            )
+        }
+        
+        composable("quiz/create") {
+            upc.edu.pe.levelupjourney.presentation.screen.quiz.CreateQuizScreen(
+                onBackClick = { navController.popBackStack() },
+                onQuizCreated = { quizId ->
+                    navController.navigate("quiz/$quizId/questions") {
+                        popUpTo("main") { inclusive = false }
+                    }
+                }
+            )
+        }
+        
+        composable("quiz/{quizId}/questions") { backStackEntry ->
+            val quizId = backStackEntry.arguments?.getString("quizId")?.toLongOrNull() ?: 0L
+            upc.edu.pe.levelupjourney.presentation.screen.quiz.QuizQuestionsScreen(
+                quizId = quizId,
+                onBackClick = { 
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                },
+                onAddQuestionClick = {
+                    navController.navigate("quiz/$quizId/question/add")
+                },
+                onEditQuestionClick = { question ->
+                    navController.navigate("quiz/$quizId/question/${question.id}/edit")
+                }
+            )
+        }
+        
+        composable("quiz/{quizId}/question/add") { backStackEntry ->
+            val quizId = backStackEntry.arguments?.getString("quizId")?.toLongOrNull() ?: 0L
+            upc.edu.pe.levelupjourney.presentation.screen.quiz.AddQuestionScreen(
+                quizId = quizId,
+                onBackClick = { navController.popBackStack() },
+                onQuestionAdded = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("quiz/{quizId}/question/{questionId}/edit") { backStackEntry ->
+            val quizId = backStackEntry.arguments?.getString("quizId")?.toLongOrNull() ?: 0L
+            val questionId = backStackEntry.arguments?.getString("questionId")?.toLongOrNull() ?: 0L
+            
+            // Get quiz from previous screen's viewModel
+            // For now, navigate back - proper implementation would pass question data
+            upc.edu.pe.levelupjourney.presentation.screen.quiz.EditQuestionScreen(
+                quizId = quizId,
+                question = upc.edu.pe.levelupjourney.classactivitites.domain.model.entities.Question(
+                    id = questionId,
+                    content = "",
+                    contentType = "TEXT",
+                    questionType = "MULTIPLE_CHOICE",
+                    points = 10,
+                    timeLimitSeconds = 30,
+                    questionOrder = 1,
+                    answers = emptyList(),
+                    createdAt = "",
+                    updatedAt = ""
+                ),
+                onBackClick = { navController.popBackStack() },
+                onQuestionUpdated = {
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -165,7 +239,15 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     navController.navigate("welcome") {
                         popUpTo("welcome") { inclusive = true }
                     }
-                }
+                },
+                onProfileClick = { navController.navigate("profile") }
+            )
+        }
+        
+        composable("profile") {
+            upc.edu.pe.levelupjourney.presentation.screen.profile.ProfileScreen(
+                onBackClick = { navController.popBackStack() },
+                onEditProfileClick = { /* TODO: Navigate to edit profile */ }
             )
         }
 
