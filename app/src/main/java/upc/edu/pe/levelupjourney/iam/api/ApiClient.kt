@@ -1,5 +1,6 @@
 package upc.edu.pe.levelupjourney.iam.api
 
+import android.util.Log
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -11,6 +12,7 @@ import upc.edu.pe.levelupjourney.classactivitites.api.QuizApiService
 
 object ApiClient {
     private const val BASE_URL = "http://192.168.0.119:8081" // For Android emulator pointing to localhost
+    private const val QUIZ_BASE_URL = "http://192.168.0.119:8086" // Quiz service base URL
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -20,17 +22,35 @@ object ApiClient {
     private var authRepository: AuthRepository? = null
 
     private val authInterceptor = Interceptor { chain ->
-        val token = authRepository?.let { repo ->
-            runBlocking { repo.getAccessToken() }
+        val request = chain.request()
+        
+        // Get token synchronously in IO context
+        val token = runBlocking {
+            authRepository?.getAccessToken()
         }
-        val request = if (token != null) {
-            chain.request().newBuilder()
+        
+        Log.d("ApiClient", "=== AUTH INTERCEPTOR ===")
+        Log.d("ApiClient", "Request URL: ${request.url}")
+        Log.d("ApiClient", "Request Method: ${request.method}")
+        Log.d("ApiClient", "Retrieved Token: $token")
+        
+        val newRequest = if (token != null) {
+            Log.d("ApiClient", "Adding Authorization header with token")
+            request.newBuilder()
                 .addHeader("Authorization", "Bearer $token")
                 .build()
         } else {
-            chain.request()
+            Log.w("ApiClient", "No token available, proceeding without Authorization header")
+            request
         }
-        chain.proceed(request)
+        
+        Log.d("ApiClient", "Final request headers: ${newRequest.headers}")
+        
+        val response = chain.proceed(newRequest)
+        Log.d("ApiClient", "Response code: ${response.code}")
+        Log.d("ApiClient", "Response message: ${response.message}")
+        
+        response
     }
 
     private val client = OkHttpClient.Builder()
@@ -54,6 +74,12 @@ object ApiClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
+    val quizRetrofit: Retrofit = Retrofit.Builder()
+        .baseUrl(QUIZ_BASE_URL)
+        .client(authenticatedClient)
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
     // API service instances
     val authApiService: AuthApiService by lazy {
         retrofit.create(AuthApiService::class.java)
@@ -64,7 +90,7 @@ object ApiClient {
     }
 
     val quizApiService: QuizApiService by lazy {
-        authenticatedRetrofit.create(QuizApiService::class.java)
+        quizRetrofit.create(QuizApiService::class.java)
     }
 
     // Initialize with auth repository for token injection

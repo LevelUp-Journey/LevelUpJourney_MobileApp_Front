@@ -46,7 +46,7 @@ fun LoginScreen(
     val viewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(authRepository))
     
     var email by remember { mutableStateOf("pcsiub@upc.edu.pe") }
-    var password by remember { mutableStateOf("Password123") }
+    var password by remember { mutableStateOf("Teacher123") }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
     var passwordVisible by remember { mutableStateOf(false) }
