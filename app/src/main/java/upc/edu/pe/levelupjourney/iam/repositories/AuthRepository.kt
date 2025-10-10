@@ -24,6 +24,7 @@ class AuthRepository(
     private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
     private val USER_ID_KEY = stringPreferencesKey("user_id")
     private val USER_EMAIL_KEY = stringPreferencesKey("user_email")
+    private val USER_ROLE_KEY = stringPreferencesKey("user_role") // ROLE_TEACHER or ROLE_STUDENT
 
     suspend fun signIn(email: String, password: String): Result<AuthenticatedUser> {
         return try {
@@ -178,6 +179,26 @@ class AuthRepository(
             prefs[USER_EMAIL_KEY]
         }.first()
     }
+    
+    suspend fun getUserRole(): String? {
+        return context.dataStore.data.map { prefs ->
+            prefs[USER_ROLE_KEY]
+        }.first()
+    }
+    
+    suspend fun saveUserRole(role: String) {
+        Log.d("AuthRepository", "=== SAVING USER ROLE ===")
+        Log.d("AuthRepository", "Role: $role")
+        context.dataStore.edit { prefs ->
+            prefs[USER_ROLE_KEY] = role
+        }
+        Log.d("AuthRepository", "User role saved successfully")
+    }
+    
+    suspend fun isTeacher(): Boolean {
+        val role = getUserRole()
+        return role == "ROLE_TEACHER"
+    }
 
     suspend fun isUserLoggedIn(): Boolean {
         return getAccessToken() != null
@@ -189,6 +210,7 @@ class AuthRepository(
             prefs.remove(REFRESH_TOKEN_KEY)
             prefs.remove(USER_ID_KEY)
             prefs.remove(USER_EMAIL_KEY)
+            prefs.remove(USER_ROLE_KEY)
         }
     }
 }
