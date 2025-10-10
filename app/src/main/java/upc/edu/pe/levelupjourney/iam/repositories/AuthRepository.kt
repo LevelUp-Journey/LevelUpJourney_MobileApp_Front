@@ -138,9 +138,11 @@ class AuthRepository(
             prefs[REFRESH_TOKEN_KEY] = user.refreshToken
             prefs[USER_ID_KEY] = user.id
             prefs[USER_EMAIL_KEY] = user.email
+            // Clear cached role on sign in - it will be re-detected
+            prefs.remove(USER_ROLE_KEY)
         }
         
-        Log.d("AuthRepository", "User data saved successfully to DataStore")
+        Log.d("AuthRepository", "User data saved successfully to DataStore (role cleared)")
         
         // Verify saved data
         val savedToken = getAccessToken()

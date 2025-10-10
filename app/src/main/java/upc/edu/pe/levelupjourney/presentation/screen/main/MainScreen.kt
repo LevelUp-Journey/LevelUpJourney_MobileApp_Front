@@ -66,7 +66,7 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     
     // Calculate number of tabs
-    val tabCount = if (isTeacher) 4 else 3
+    val tabCount = if (isTeacher) 3 else 2
     val pagerState = rememberPagerState(pageCount = { tabCount })
     
     // Sync pager with selected tab
@@ -82,19 +82,14 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         scope.launch {
             Log.d("MainScreen", "=== INITIALIZING MAIN SCREEN ===")
-            val cachedRole = authRepository.getUserRole()
-            Log.d("MainScreen", "Cached role: $cachedRole")
-            
-            if (cachedRole == "ROLE_TEACHER") {
-                isTeacher = true
-                hasQuizzesCheck = true
-                Log.d("MainScreen", "User is TEACHER (from cache)")
+            val userId = authRepository.getCurrentUserId()
+            if (userId != null) {
+                Log.d("MainScreen", "Fetching quizzes to check teacher status for user: $userId")
+                quizViewModel.fetchMyQuizzes(userId)
             } else {
-                val userId = authRepository.getCurrentUserId()
-                if (userId != null) {
-                    Log.d("MainScreen", "Fetching quizzes to check teacher status for user: $userId")
-                    quizViewModel.fetchMyQuizzes(userId)
-                }
+                Log.e("MainScreen", "User ID is null, cannot fetch quizzes")
+                hasQuizzesCheck = true
+                isTeacher = false
             }
         }
     }
@@ -154,17 +149,17 @@ fun MainScreen(
                 }
                 
                 NavigationBarItem(
+                    selected = selectedTab == if (isTeacher) 2 else 1,
+                    onClick = { selectedTab = if (isTeacher) 2 else 1 },
+                    icon = { Icon(Icons.Outlined.Group, contentDescription = "Community") },
+                    label = { Text("Community") }
+                )
+                
+                NavigationBarItem(
                     selected = false,
                     onClick = { showJoinDrawer = true },
                     icon = { Icon(Icons.Outlined.Add, contentDescription = "Join") },
                     label = { Text("Join") }
-                )
-                
-                NavigationBarItem(
-                    selected = selectedTab == if (isTeacher) 3 else 2,
-                    onClick = { selectedTab = if (isTeacher) 3 else 2 },
-                    icon = { Icon(Icons.Outlined.Group, contentDescription = "Community") },
-                    label = { Text("Community") }
                 )
             }
         }
@@ -193,14 +188,12 @@ fun MainScreen(
                                 quizzes = quizzes,
                                 onCreateQuizClick = onCreateQuizClick
                             )
-                            2 -> Box(modifier = Modifier.fillMaxSize()) // Placeholder for Join
-                            3 -> CommunityContent()
+                            2 -> CommunityContent()
                         }
                     } else {
                         when (page) {
                             0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
-                            1 -> Box(modifier = Modifier.fillMaxSize()) // Placeholder for Join
-                            2 -> CommunityContent()
+                            1 -> CommunityContent()
                         }
                     }
                 }
@@ -382,8 +375,7 @@ fun JoinGameDrawer(
             
             OutlinedButton(
                 onClick = { 
-                    // TODO: Open QR scanner
-                    keyboardController?.hide()
+                    onScanQRClick()
                 },
                 modifier = Modifier
                     .fillMaxWidth(0.85f)

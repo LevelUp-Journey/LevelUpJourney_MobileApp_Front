@@ -1,5 +1,7 @@
 package upc.edu.pe.levelupjourney.presentation.screen.profile
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -12,12 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import upc.edu.pe.levelupjourney.iam.api.ApiClient
 import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,6 +36,12 @@ fun ProfileScreen(
     var userEmail by remember { mutableStateOf("") }
     var userId by remember { mutableStateOf("") }
     var userRole by remember { mutableStateOf("") }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    
+    val animatedOffset by animateFloatAsState(
+        targetValue = offsetX,
+        label = "swipe"
+    )
     
     LaunchedEffect(Unit) {
         scope.launch {
@@ -75,7 +85,26 @@ fun ProfileScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .offset(x = animatedOffset.dp)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            if (abs(offsetX) > 100f) {
+                                if (offsetX > 0) {
+                                    onBackClick()
+                                }
+                            }
+                            offsetX = 0f
+                        },
+                        onHorizontalDrag = { _, dragAmount ->
+                            val newOffset = offsetX + dragAmount
+                            if (newOffset >= 0) {
+                                offsetX = newOffset.coerceAtMost(300f)
+                            }
+                        }
+                    )
+                },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {

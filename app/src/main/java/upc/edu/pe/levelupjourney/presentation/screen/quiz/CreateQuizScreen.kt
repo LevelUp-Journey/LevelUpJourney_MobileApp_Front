@@ -1,6 +1,8 @@
 package upc.edu.pe.levelupjourney.presentation.screen.quiz
 
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,6 +25,7 @@ import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModelFactor
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.CreateQuizState
 import upc.edu.pe.levelupjourney.iam.api.ApiClient
 import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +38,12 @@ fun CreateQuizScreen(
     var selectedCategory by remember { mutableStateOf("PROGRAMMING") }
     var coverImageUrl by remember { mutableStateOf("") }
     var showCategoryMenu by remember { mutableStateOf(false) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    
+    val animatedOffset by animateFloatAsState(
+        targetValue = offsetX,
+        label = "swipe"
+    )
     
     val context = LocalContext.current
     val authRepository = remember { AuthRepository(context, ApiClient.authApiService) }
@@ -98,6 +108,25 @@ fun CreateQuizScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .offset(x = animatedOffset.dp)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            if (abs(offsetX) > 100f) {
+                                if (offsetX > 0) {
+                                    onBackClick()
+                                }
+                            }
+                            offsetX = 0f
+                        },
+                        onHorizontalDrag = { _, dragAmount ->
+                            val newOffset = offsetX + dragAmount
+                            if (newOffset >= 0) {
+                                offsetX = newOffset.coerceAtMost(300f)
+                            }
+                        }
+                    )
+                }
         ) {
             Column(
                 modifier = Modifier
