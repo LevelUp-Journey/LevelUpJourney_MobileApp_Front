@@ -28,6 +28,8 @@ import upc.edu.pe.levelupjourney.presentation.screen.game.GameQuestionScreen
 import upc.edu.pe.levelupjourney.presentation.screen.game.Question
 import upc.edu.pe.levelupjourney.presentation.screen.join.JoinGameScreen
 import upc.edu.pe.levelupjourney.presentation.screen.join.NicknameScreen
+import upc.edu.pe.levelupjourney.presentation.screen.quiz.CreateQuizScreen
+import upc.edu.pe.levelupjourney.presentation.screen.quiz.QuizQuestionsScreen
 
 @Composable
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
@@ -127,7 +129,35 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         composable("main") {
             MainScreen(
                 onProfileClick = { /* No profile functionality */ },
-                onMenuClick = { navController.navigate("settings") }
+                onMenuClick = { navController.navigate("settings") },
+                onCreateQuizClick = { navController.navigate("quiz/create") }
+            )
+        }
+        
+        composable("quiz/create") {
+            upc.edu.pe.levelupjourney.presentation.screen.quiz.CreateQuizScreen(
+                onBackClick = { navController.popBackStack() },
+                onQuizCreated = { quizId ->
+                    navController.navigate("quiz/$quizId/questions") {
+                        popUpTo("main") { inclusive = false }
+                    }
+                }
+            )
+        }
+        
+        composable("quiz/{quizId}/questions") { backStackEntry ->
+            val quizId = backStackEntry.arguments?.getString("quizId")?.toLongOrNull() ?: 0L
+            upc.edu.pe.levelupjourney.presentation.screen.quiz.QuizQuestionsScreen(
+                quizId = quizId,
+                onBackClick = { 
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
+                },
+                onAddQuestionClick = {
+                    // TODO: Navigate to add question screen
+                    // navController.navigate("quiz/$quizId/question/add")
+                }
             )
         }
 

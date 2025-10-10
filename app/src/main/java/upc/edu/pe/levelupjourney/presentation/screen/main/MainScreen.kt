@@ -36,7 +36,8 @@ import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 @Composable
 fun MainScreen(
     onProfileClick: () -> Unit,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    onCreateQuizClick: () -> Unit = {}
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showJoinDrawer by remember { mutableStateOf(false) }
@@ -55,12 +56,9 @@ fun MainScreen(
     val quizzes by quizViewModel.quizzes.collectAsState()
     val scope = rememberCoroutineScope()
     
-    // Check if user is teacher and fetch quizzes on first load
     LaunchedEffect(Unit) {
         scope.launch {
             Log.d("MainScreen", "=== INITIALIZING MAIN SCREEN ===")
-            
-            // Check cached role first
             val cachedRole = authRepository.getUserRole()
             Log.d("MainScreen", "Cached role: $cachedRole")
             
@@ -69,7 +67,6 @@ fun MainScreen(
                 hasQuizzesCheck = true
                 Log.d("MainScreen", "User is TEACHER (from cache)")
             } else {
-                // Fetch quizzes to determine if user is teacher
                 val userId = authRepository.getCurrentUserId()
                 if (userId != null) {
                     Log.d("MainScreen", "Fetching quizzes to check teacher status for user: $userId")
@@ -79,36 +76,23 @@ fun MainScreen(
         }
     }
     
-    // Monitor quiz state to determine teacher status
     LaunchedEffect(quizState) {
         if (!hasQuizzesCheck) {
             when (quizState) {
                 is QuizState.Success -> {
                     scope.launch {
                         hasQuizzesCheck = true
-                        
-                        // ✅ IMPORTANTE: Si el fetch es exitoso (incluso con array vacío),
-                        // significa que el token tiene ROLE_TEACHER
                         isTeacher = true
                         authRepository.saveUserRole("ROLE_TEACHER")
-                        
-                        Log.d("MainScreen", "=== QUIZ FETCH COMPLETED ===")
-                        Log.d("MainScreen", "Fetch SUCCESS (token recognized)")
-                        Log.d("MainScreen", "Quizzes count: ${quizzes.size}")
                         Log.d("MainScreen", "✅ User is TEACHER (fetch successful)")
                     }
                 }
                 is QuizState.Error -> {
                     scope.launch {
                         hasQuizzesCheck = true
-                        
-                        // ❌ Si el fetch falla (401/403), no es profesor
                         isTeacher = false
                         authRepository.saveUserRole("ROLE_STUDENT")
-                        
-                        Log.d("MainScreen", "=== QUIZ FETCH FAILED ===")
-                        Log.d("MainScreen", "Error: ${(quizState as QuizState.Error).message}")
-                        Log.d("MainScreen", "👤 User is STUDENT (fetch failed - not authorized)")
+                        Log.d("MainScreen", "👤 User is STUDENT (fetch failed)")
                     }
                 }
                 else -> {}
@@ -116,7 +100,6 @@ fun MainScreen(
         }
     }
     
-    // Show loading while checking role
     if (!hasQuizzesCheck) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -131,7 +114,6 @@ fun MainScreen(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             NavigationBar {
-                // Home tab
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
@@ -139,7 +121,6 @@ fun MainScreen(
                     label = { Text("Home") }
                 )
                 
-                // Library tab (only for teachers)
                 if (isTeacher) {
                     NavigationBarItem(
                         selected = selectedTab == 1,
@@ -149,18 +130,13 @@ fun MainScreen(
                     )
                 }
                 
-                // Join tab
                 NavigationBarItem(
-                    selected = selectedTab == if (isTeacher) 2 else 1,
-                    onClick = { 
-                        selectedTab = if (isTeacher) 2 else 1
-                        showJoinDrawer = true 
-                    },
+                    selected = false,
+                    onClick = { showJoinDrawer = true },
                     icon = { Icon(Icons.Outlined.Add, contentDescription = "Join") },
                     label = { Text("Join") }
                 )
                 
-                // Community tab
                 NavigationBarItem(
                     selected = selectedTab == if (isTeacher) 3 else 2,
                     onClick = { selectedTab = if (isTeacher) 3 else 2 },
@@ -170,42 +146,40 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            // Header
-            AppHeader(
-                onProfileClick = onProfileClick,
-                onMenuClick = onMenuClick
-            )
-            
-            // Content based on selected tab
-            if (isTeacher) {
-                // Teacher view with Library
-                when (selectedTab) {
-                    0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
-                    1 -> LibraryContent(quizzes)
-                    2 -> {} // Join drawer
-                    3 -> CommunityContent()
-                }
-            } else {
-                // Student view without Library
-                when (selectedTab) {
-                    0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
-                    1 -> {} // Join drawer
-                    2 -> CommunityContent()
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                AppHeader(
+                    onProfileClick = onProfileClick,
+                    onMenuClick = onMenuClick
+                )
+                
+                if (isTeacher) {
+                    when (selectedTab) {
+                        0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
+                        1 -> LibraryContent(
+                            quizzes = quizzes,
+                            onCreateQuizClick = onCreateQuizClick
+                        )
+                        3 -> CommunityContent()
+                    }
+                } else {
+                    when (selectedTab) {
+                        0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
+                        2 -> CommunityContent()
+                    }
                 }
             }
+            
+            if (showJoinDrawer) {
+                JoinGameDrawer(
+                    onDismiss = { showJoinDrawer = false }
+                )
+            }
         }
-    }
-    
-    // Join Game Drawer - Normal Bottom Sheet sin límite de altura
-    if (showJoinDrawer) {
-        JoinGameDrawer(
-            onDismiss = { showJoinDrawer = false }
-        )
     }
 }
 
@@ -216,13 +190,20 @@ fun JoinGameDrawer(
 ) {
     var pin by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true  // Forzar expansión completa
+    )
+    
+    LaunchedEffect(Unit) {
+        sheetState.expand()  // Expandir completamente al abrir
+    }
     
     ModalBottomSheet(
         onDismissRequest = { 
             onDismiss()
             pin = ""
         },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
+        sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
@@ -230,10 +211,9 @@ fun JoinGameDrawer(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 40.dp),
+                .padding(bottom = 56.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Title
             Text(
                 text = "Join Game",
                 style = MaterialTheme.typography.headlineMedium,
@@ -250,7 +230,6 @@ fun JoinGameDrawer(
                 modifier = Modifier.padding(bottom = 32.dp)
             )
             
-            // PIN Input Section
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
@@ -263,7 +242,6 @@ fun JoinGameDrawer(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
-                // PIN Input Field
                 OutlinedTextField(
                     value = pin,
                     onValueChange = { 
@@ -312,7 +290,6 @@ fun JoinGameDrawer(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
-                // Join Button
                 Button(
                     onClick = {
                         if (pin.length >= 4) {
@@ -338,7 +315,6 @@ fun JoinGameDrawer(
                 }
             }
             
-            // Divider
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -355,7 +331,6 @@ fun JoinGameDrawer(
                 HorizontalDivider(modifier = Modifier.weight(1f))
             }
             
-            // QR Scanner Button
             OutlinedButton(
                 onClick = { 
                     // TODO: Open QR scanner
@@ -392,8 +367,6 @@ fun HomeContent(
     authRepository: AuthRepository,
     quizViewModel: QuizViewModel
 ) {
-    val scope = rememberCoroutineScope()
-    
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -494,58 +467,77 @@ fun HomeContent(
 }
 
 @Composable
-fun LibraryContent(quizzes: List<Quiz>) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Library",
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        if (quizzes.isEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+fun LibraryContent(
+    quizzes: List<Quiz>,
+    onCreateQuizClick: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Library",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
                 ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            if (quizzes.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(
-                        text = "No quizzes in library",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Create your first quiz to get started!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No quizzes in library",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Create your first quiz to get started!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(quizzes) { quiz ->
+                        QuizCard(quiz)
+                    }
                 }
             }
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(quizzes) { quiz ->
-                    QuizCard(quiz)
-                }
-            }
+        }
+        
+        FloatingActionButton(
+            onClick = onCreateQuizClick,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            containerColor = MaterialTheme.colorScheme.primary
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = "Create Quiz",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
 }
