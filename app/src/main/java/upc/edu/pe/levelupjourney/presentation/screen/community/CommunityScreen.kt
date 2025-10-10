@@ -36,6 +36,7 @@ fun CommunityScreen(
     var selectedTab by remember { mutableIntStateOf(2) } // Community activo
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier
@@ -98,6 +99,8 @@ fun CommunityScreen(
         }
     ) { innerPadding ->
         LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -125,7 +128,6 @@ fun PostItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
     ) {
         // user info
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -159,7 +161,7 @@ fun PostItem(
                 Icon(
                     imageVector = if (post.liked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = "Like",
-                    tint = if (post.liked) Color.Red else Color.Gray
+                    tint = if (post.liked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text("${post.likes}")
