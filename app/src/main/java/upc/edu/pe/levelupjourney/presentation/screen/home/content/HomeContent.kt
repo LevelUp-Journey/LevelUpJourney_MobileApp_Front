@@ -33,7 +33,10 @@ fun HomeContent() {
     val context = LocalContext.current
     val authRepository = remember { AuthRepository(context, ApiClient.authApiService) }
     val quizRepository = remember { QuizRepository(ApiClient.quizApiService) }
-    val viewModel: QuizViewModel = viewModel(factory = QuizViewModelFactory(quizRepository))
+    val viewModel: QuizViewModel = viewModel(
+        key = "homecontent_quiz_list",
+        factory = QuizViewModelFactory(quizRepository)
+    )
     
     val quizState by viewModel.quizState.collectAsState()
     val quizzes by viewModel.quizzes.collectAsState()

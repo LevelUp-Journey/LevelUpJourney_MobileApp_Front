@@ -1,18 +1,13 @@
 package upc.edu.pe.levelupjourney.presentation.screen.home
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.LibraryBooks
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,7 +17,6 @@ import upc.edu.pe.levelupjourney.R
 import upc.edu.pe.levelupjourney.presentation.screen.home.content.HomeContent
 import upc.edu.pe.levelupjourney.presentation.screen.home.join.JoinContent
 import upc.edu.pe.levelupjourney.presentation.screen.home.community.CommunityContent
-import upc.edu.pe.levelupjourney.presentation.screen.home.library.LibraryContent
 import upc.edu.pe.levelupjourney.iam.api.ApiClient
 import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 import upc.edu.pe.levelupjourney.classactivitites.repositories.QuizRepository
@@ -30,147 +24,159 @@ import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModel
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModelFactory
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizState
 
+private val SCREEN_PADDING = 16.dp
+private val CONTENT_SPACING = 8.dp
+
 @Composable
 fun HomeScreen(
     onProfileClick: () -> Unit,
     onSettingsClick: () -> Unit,
     onJoinTabClick: () -> Unit,
-    onCommunityTabClick: () -> Unit
+    onCommunityTabClick: () -> Unit,
+    onAddQuizClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val authRepository = remember { AuthRepository(context, ApiClient.authApiService) }
-    val quizRepository = remember { QuizRepository(ApiClient.quizApiService) }
-    val viewModel: QuizViewModel = viewModel(factory = QuizViewModelFactory(quizRepository))
-    
+    val viewModel: QuizViewModel = viewModel(
+        key = "homescreen_quiz_check",
+        factory = QuizViewModelFactory(QuizRepository(ApiClient.quizApiService))
+    )
+
     val quizState by viewModel.quizState.collectAsState()
     val quizzes by viewModel.quizzes.collectAsState()
-    
-    // Check if user has quizzes (is a teacher)
-    var hasQuizzes by remember { mutableStateOf(false) }
-    var isCheckingQuizzes by remember { mutableStateOf(true) }
-    
+    var selectedTab by remember { mutableIntStateOf(0) }
+
+    var isFetchSuccessful by remember { mutableStateOf(false) }
+
+    // Inicialización y manejo del estado de fetch
     LaunchedEffect(Unit) {
         val userId = authRepository.getCurrentUserId()
-        if (userId != null) {
-            viewModel.fetchMyQuizzes(userId)
-        }
+        userId?.let {
+            viewModel.fetchMyQuizzes(it)
+            Log.d("HomeScreen", "Fetching quizzes for user: $it")
+        } ?: Log.e("HomeScreen", "No user ID found")
     }
-    
+
+    // Observar el estado del fetch
     LaunchedEffect(quizState) {
         when (quizState) {
             is QuizState.Success -> {
-                hasQuizzes = quizzes.isNotEmpty()
-                isCheckingQuizzes = false
+                isFetchSuccessful = true
+                Log.d("HomeScreen", "Fetch successful - ${quizzes.size} quizzes loaded")
             }
             is QuizState.Error -> {
-                hasQuizzes = false
-                isCheckingQuizzes = false
+                isFetchSuccessful = false
+                Log.e("HomeScreen", "Fetch failed - ${(quizState as QuizState.Error).message}")
             }
-            is QuizState.Idle -> {
-                isCheckingQuizzes = true
-            }
-            is QuizState.Loading -> {
-                isCheckingQuizzes = true
-            }
+            else -> Unit
         }
     }
-    
-    var selectedTab by remember { mutableIntStateOf(0) }
+
+    // Loading state
+    if (quizState is QuizState.Loading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
-                    label = { Text("Home") }
-                )
-                
-                // Show Library tab only if user has quizzes (is a teacher)
-                if (hasQuizzes && !isCheckingQuizzes) {
-                    NavigationBarItem(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        icon = { Icon(Icons.Outlined.LibraryBooks, contentDescription = "Library") },
-                        label = { Text("Library") }
-                    )
+        topBar = { TopAppBar(onProfileClick, onSettingsClick) },
+        bottomBar = { BottomNavigationBar(selectedTab) { selectedTab = it } },
+        floatingActionButton = {
+            if (isFetchSuccessful) {
+                FloatingActionButton(
+                    onClick = onAddQuizClick,
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Icon(Icons.Outlined.Add, contentDescription = "Add Quiz")
                 }
-                
-                NavigationBarItem(
-                    selected = selectedTab == if (hasQuizzes && !isCheckingQuizzes) 2 else 1,
-                    onClick = { selectedTab = if (hasQuizzes && !isCheckingQuizzes) 2 else 1 },
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = "Join") },
-                    label = { Text("Join") }
-                )
-                NavigationBarItem(
-                    selected = selectedTab == if (hasQuizzes && !isCheckingQuizzes) 3 else 2,
-                    onClick = { selectedTab = if (hasQuizzes && !isCheckingQuizzes) 3 else 2 },
-                    icon = { Icon(Icons.Outlined.Group, contentDescription = "Community") },
-                    label = { Text("Community") }
-                )
             }
         }
-    ) { innerPadding ->
-        Column(
+    ) { padding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(padding)
         ) {
-            // Top bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(onClick = onProfileClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccountCircle,
-                        contentDescription = "Profile",
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = R.drawable.logo,
-                        contentDescription = "App Logo",
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(Modifier.size(6.dp))
-                    Text(
-                        text = "Level Up Journey",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    )
-                }
-
-                IconButton(onClick = onSettingsClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = "Settings",
-                    )
-                }
-            }
-
-            // Content based on selected tab
-            if (hasQuizzes && !isCheckingQuizzes) {
-                // Teacher view with Library tab
-                when (selectedTab) {
-                    0 -> HomeContent()
-                    1 -> LibraryContent()
-                    2 -> JoinContent()
-                    3 -> CommunityContent()
-                }
-            } else {
-                // Student view without Library tab
-                when (selectedTab) {
-                    0 -> HomeContent()
-                    1 -> JoinContent()
-                    2 -> CommunityContent()
-                }
+            when (selectedTab) {
+                0 -> HomeContent()
+                1 -> JoinContent()
+                2 -> CommunityContent()
+                else -> HomeContent()
             }
         }
+    }
+}
+
+@Composable
+private fun TopAppBar(
+    onProfileClick: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = SCREEN_PADDING, vertical = CONTENT_SPACING),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconButton(onClick = onProfileClick) {
+            Icon(Icons.Outlined.AccountCircle, contentDescription = "Profile")
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(CONTENT_SPACING)
+        ) {
+            AsyncImage(
+                model = R.drawable.logo,
+                contentDescription = "App Logo",
+                modifier = Modifier.size(28.dp)
+            )
+            Text(
+                text = "Level Up Journey",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold
+                )
+            )
+        }
+
+        IconButton(onClick = onSettingsClick) {
+            Icon(Icons.Outlined.Settings, contentDescription = "Settings")
+        }
+    }
+}
+
+@Composable
+private fun BottomNavigationBar(
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    NavigationBar {
+        NavigationBarItem(
+            selected = selectedTab == 0,
+            onClick = { onTabSelected(0) },
+            icon = { Icon(Icons.Outlined.Home, contentDescription = null) },
+            label = { Text("Home") }
+        )
+
+        NavigationBarItem(
+            selected = selectedTab == 1,
+            onClick = { onTabSelected(1) },
+            icon = { Icon(Icons.Outlined.AddCircleOutline, contentDescription = null) },
+            label = { Text("Join") }
+        )
+
+        NavigationBarItem(
+            selected = selectedTab == 2,
+            onClick = { onTabSelected(2) },
+            icon = { Icon(Icons.Outlined.Group, contentDescription = null) },
+            label = { Text("Community") }
+        )
     }
 }
