@@ -25,6 +25,7 @@ import upc.edu.pe.levelupjourney.classactivitites.repositories.QuizRepository
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModel
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModelFactory
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizState
+import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuestionState
 import upc.edu.pe.levelupjourney.iam.api.ApiClient
 import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 
@@ -33,7 +34,8 @@ import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 fun QuizQuestionsScreen(
     quizId: Long,
     onBackClick: () -> Unit,
-    onAddQuestionClick: () -> Unit
+    onAddQuestionClick: () -> Unit,
+    onEditQuestionClick: (Question) -> Unit
 ) {
     val context = LocalContext.current
     val authRepository = remember { AuthRepository(context, ApiClient.authApiService) }
@@ -45,7 +47,10 @@ fun QuizQuestionsScreen(
     
     val currentQuiz by quizViewModel.currentQuiz.collectAsState()
     val quizState by quizViewModel.quizState.collectAsState()
+    val questionState by quizViewModel.questionState.collectAsState()
     val scope = rememberCoroutineScope()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var questionToDelete by remember { mutableStateOf<Question?>(null) }
     
     // Load quiz with questions on first composition
     LaunchedEffect(quizId) {
@@ -54,6 +59,19 @@ fun QuizQuestionsScreen(
             if (userId != null) {
                 Log.d("QuizQuestionsScreen", "Loading quiz $quizId with questions")
                 quizViewModel.getQuizById(quizId, userId, includeQuestions = true)
+            }
+        }
+    }
+    
+    // Reload when question is deleted
+    LaunchedEffect(questionState) {
+        if (questionState is QuestionState.Success) {
+            scope.launch {
+                val userId = authRepository.getCurrentUserId()
+                if (userId != null) {
+                    quizViewModel.getQuizById(quizId, userId, includeQuestions = true)
+                    quizViewModel.resetQuestionState()
+                }
             }
         }
     }
@@ -213,13 +231,53 @@ fun QuizQuestionsScreen(
                             QuestionCard(
                                 question = question,
                                 questionNumber = index + 1,
-                                onEditClick = { /* TODO: Edit question */ },
-                                onDeleteClick = { /* TODO: Delete question */ }
+                                onEditClick = { onEditQuestionClick(question) },
+                                onDeleteClick = {
+                                    questionToDelete = question
+                                    showDeleteDialog = true
+                                }
                             )
                         }
                     }
                 }
             }
+        }
+        
+        // Delete confirmation dialog
+        if (showDeleteDialog && questionToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete Question") },
+                text = { Text("Are you sure you want to delete this question? This action cannot be undone.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                val userId = authRepository.getCurrentUserId()
+                                if (userId != null && questionToDelete != null) {
+                                    quizViewModel.deleteQuestion(
+                                        quizId = quizId,
+                                        questionId = questionToDelete!!.id,
+                                        userId = userId
+                                    )
+                                }
+                            }
+                            showDeleteDialog = false
+                            questionToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
