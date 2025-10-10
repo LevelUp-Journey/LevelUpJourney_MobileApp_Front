@@ -90,6 +90,13 @@ fun MainScreen(
                 Log.e("MainScreen", "User ID is null, cannot fetch quizzes")
                 hasQuizzesCheck = true
                 isTeacher = false
+                // If we don't have a userId we can't fetch quizzes — treat as student
+                try {
+                    authRepository.saveUserRole("ROLE_STUDENT")
+                    Log.d("MainScreen", "Saved ROLE_STUDENT because userId is null")
+                } catch (e: Exception) {
+                    Log.e("MainScreen", "Failed to save ROLE_STUDENT", e)
+                }
             }
         }
     }
