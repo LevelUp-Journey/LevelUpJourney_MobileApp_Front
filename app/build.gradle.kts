@@ -99,6 +99,18 @@ dependencies {
 
     // --- Animaciones y transiciones fluidas ---
     implementation("androidx.compose.animation:animation")
+    
+    // --- CameraX para escaneo de QR ---
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-view:1.3.1")
+    
+    // --- ZXing para procesamiento de códigos QR ---
+    implementation("com.google.zxing:core:3.5.2")
+    
+    // --- Accompanist para permisos ---
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     // --- Testing dependencies ---
     testImplementation(libs.junit)

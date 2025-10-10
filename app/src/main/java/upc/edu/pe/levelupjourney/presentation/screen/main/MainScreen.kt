@@ -1,9 +1,15 @@
 package upc.edu.pe.levelupjourney.presentation.screen.main
 
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import upc.edu.pe.levelupjourney.presentation.components.AppHeader
+import upc.edu.pe.levelupjourney.presentation.components.QRCodeScanner
 import upc.edu.pe.levelupjourney.classactivitites.domain.model.entities.Quiz
 import upc.edu.pe.levelupjourney.classactivitites.repositories.QuizRepository
 import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModel
@@ -32,7 +40,7 @@ import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizState
 import upc.edu.pe.levelupjourney.iam.api.ApiClient
 import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
     onProfileClick: () -> Unit,
@@ -41,6 +49,7 @@ fun MainScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var showJoinDrawer by remember { mutableStateOf(false) }
+    var showQRScanner by remember { mutableStateOf(false) }
     var isTeacher by remember { mutableStateOf(false) }
     var hasQuizzesCheck by remember { mutableStateOf(false) }
     
@@ -55,6 +64,20 @@ fun MainScreen(
     val quizState by quizViewModel.quizState.collectAsState()
     val quizzes by quizViewModel.quizzes.collectAsState()
     val scope = rememberCoroutineScope()
+    
+    // Calculate number of tabs
+    val tabCount = if (isTeacher) 4 else 3
+    val pagerState = rememberPagerState(pageCount = { tabCount })
+    
+    // Sync pager with selected tab
+    LaunchedEffect(selectedTab) {
+        pagerState.animateScrollToPage(selectedTab)
+    }
+    
+    // Sync selected tab with pager
+    LaunchedEffect(pagerState.currentPage) {
+        selectedTab = pagerState.currentPage
+    }
     
     LaunchedEffect(Unit) {
         scope.launch {
@@ -157,26 +180,51 @@ fun MainScreen(
                     onMenuClick = onMenuClick
                 )
                 
-                if (isTeacher) {
-                    when (selectedTab) {
-                        0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
-                        1 -> LibraryContent(
-                            quizzes = quizzes,
-                            onCreateQuizClick = onCreateQuizClick
-                        )
-                        3 -> CommunityContent()
-                    }
-                } else {
-                    when (selectedTab) {
-                        0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
-                        2 -> CommunityContent()
+                // HorizontalPager for swipe between tabs
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize(),
+                    userScrollEnabled = true
+                ) { page ->
+                    if (isTeacher) {
+                        when (page) {
+                            0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
+                            1 -> LibraryContent(
+                                quizzes = quizzes,
+                                onCreateQuizClick = onCreateQuizClick
+                            )
+                            2 -> Box(modifier = Modifier.fillMaxSize()) // Placeholder for Join
+                            3 -> CommunityContent()
+                        }
+                    } else {
+                        when (page) {
+                            0 -> HomeContent(quizState, quizzes, authRepository, quizViewModel)
+                            1 -> Box(modifier = Modifier.fillMaxSize()) // Placeholder for Join
+                            2 -> CommunityContent()
+                        }
                     }
                 }
             }
             
+            // QR Scanner fullscreen
+            if (showQRScanner) {
+                QRCodeScanner(
+                    onQRCodeScanned = { qrCode ->
+                        Log.d("MainScreen", "QR Code scanned: $qrCode")
+                        showQRScanner = false
+                        // TODO: Handle QR code to join game
+                    },
+                    onClose = { showQRScanner = false }
+                )
+            }
+            
             if (showJoinDrawer) {
                 JoinGameDrawer(
-                    onDismiss = { showJoinDrawer = false }
+                    onDismiss = { showJoinDrawer = false },
+                    onScanQRClick = { 
+                        showJoinDrawer = false
+                        showQRScanner = true 
+                    }
                 )
             }
         }
@@ -186,16 +234,17 @@ fun MainScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JoinGameDrawer(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onScanQRClick: () -> Unit = {}
 ) {
     var pin by remember { mutableStateOf("") }
     val keyboardController = LocalSoftwareKeyboardController.current
     val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true  // Forzar expansión completa
+        skipPartiallyExpanded = true
     )
     
     LaunchedEffect(Unit) {
-        sheetState.expand()  // Expandir completamente al abrir
+        sheetState.expand()
     }
     
     ModalBottomSheet(
