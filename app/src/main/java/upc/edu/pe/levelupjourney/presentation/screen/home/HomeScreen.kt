@@ -7,18 +7,28 @@ import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.LibraryBooks
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import upc.edu.pe.levelupjourney.R
 import upc.edu.pe.levelupjourney.presentation.screen.home.content.HomeContent
 import upc.edu.pe.levelupjourney.presentation.screen.home.join.JoinContent
 import upc.edu.pe.levelupjourney.presentation.screen.home.community.CommunityContent
+import upc.edu.pe.levelupjourney.presentation.screen.home.library.LibraryContent
+import upc.edu.pe.levelupjourney.iam.api.ApiClient
+import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.classactivitites.repositories.QuizRepository
+import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModel
+import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizViewModelFactory
+import upc.edu.pe.levelupjourney.classactivitites.viewmodels.QuizState
 
 @Composable
 fun HomeScreen(
@@ -27,6 +37,44 @@ fun HomeScreen(
     onJoinTabClick: () -> Unit,
     onCommunityTabClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val authRepository = remember { AuthRepository(context, ApiClient.authApiService) }
+    val quizRepository = remember { QuizRepository(ApiClient.quizApiService) }
+    val viewModel: QuizViewModel = viewModel(factory = QuizViewModelFactory(quizRepository))
+    
+    val quizState by viewModel.quizState.collectAsState()
+    val quizzes by viewModel.quizzes.collectAsState()
+    
+    // Check if user has quizzes (is a teacher)
+    var hasQuizzes by remember { mutableStateOf(false) }
+    var isCheckingQuizzes by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(Unit) {
+        val userId = authRepository.getCurrentUserId()
+        if (userId != null) {
+            viewModel.fetchMyQuizzes(userId)
+        }
+    }
+    
+    LaunchedEffect(quizState) {
+        when (quizState) {
+            is QuizState.Success -> {
+                hasQuizzes = quizzes.isNotEmpty()
+                isCheckingQuizzes = false
+            }
+            is QuizState.Error -> {
+                hasQuizzes = false
+                isCheckingQuizzes = false
+            }
+            is QuizState.Idle -> {
+                isCheckingQuizzes = true
+            }
+            is QuizState.Loading -> {
+                isCheckingQuizzes = true
+            }
+        }
+    }
+    
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
@@ -39,15 +87,26 @@ fun HomeScreen(
                     icon = { Icon(Icons.Outlined.Home, contentDescription = "Home") },
                     label = { Text("Home") }
                 )
+                
+                // Show Library tab only if user has quizzes (is a teacher)
+                if (hasQuizzes && !isCheckingQuizzes) {
+                    NavigationBarItem(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        icon = { Icon(Icons.Outlined.LibraryBooks, contentDescription = "Library") },
+                        label = { Text("Library") }
+                    )
+                }
+                
                 NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
+                    selected = selectedTab == if (hasQuizzes && !isCheckingQuizzes) 2 else 1,
+                    onClick = { selectedTab = if (hasQuizzes && !isCheckingQuizzes) 2 else 1 },
                     icon = { Icon(Icons.Outlined.Add, contentDescription = "Join") },
                     label = { Text("Join") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
+                    selected = selectedTab == if (hasQuizzes && !isCheckingQuizzes) 3 else 2,
+                    onClick = { selectedTab = if (hasQuizzes && !isCheckingQuizzes) 3 else 2 },
                     icon = { Icon(Icons.Outlined.Group, contentDescription = "Community") },
                     label = { Text("Community") }
                 )
@@ -96,10 +155,21 @@ fun HomeScreen(
             }
 
             // Content based on selected tab
-            when (selectedTab) {
-                0 -> HomeContent()
-                1 -> JoinContent()
-                2 -> CommunityContent()
+            if (hasQuizzes && !isCheckingQuizzes) {
+                // Teacher view with Library tab
+                when (selectedTab) {
+                    0 -> HomeContent()
+                    1 -> LibraryContent()
+                    2 -> JoinContent()
+                    3 -> CommunityContent()
+                }
+            } else {
+                // Student view without Library tab
+                when (selectedTab) {
+                    0 -> HomeContent()
+                    1 -> JoinContent()
+                    2 -> CommunityContent()
+                }
             }
         }
     }
