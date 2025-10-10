@@ -7,9 +7,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
+import upc.edu.pe.levelupjourney.classactivitites.api.QuizApiService
 
 object ApiClient {
-    private const val BASE_URL = "http://192.168.0.231:8081" // For Android emulator pointing to localhost
+    private const val BASE_URL = "http://192.168.0.119:8081" // For Android emulator pointing to localhost
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -60,6 +61,10 @@ object ApiClient {
 
     val userApiService: UserApiService by lazy {
         authenticatedRetrofit.create(UserApiService::class.java)
+    }
+
+    val quizApiService: QuizApiService by lazy {
+        authenticatedRetrofit.create(QuizApiService::class.java)
     }
 
     // Initialize with auth repository for token injection

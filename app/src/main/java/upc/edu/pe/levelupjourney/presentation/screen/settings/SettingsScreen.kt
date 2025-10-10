@@ -18,11 +18,15 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onSignOut: () -> Unit
 ) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
             Row(
                 modifier = Modifier
@@ -35,22 +39,21 @@ fun SettingsScreen(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Settings",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
             Text(
                 text = "Account",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Black,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(Modifier.height(16.dp))
@@ -65,8 +68,7 @@ fun SettingsScreen(
             Text(
                 text = "Help",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Black,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             SettingsItem("Version", onClick = { /* TODO: mostrar versión */ })
@@ -83,13 +85,13 @@ fun SettingsScreen(
 
 @Composable
 fun SettingsItem(title: String, onClick: () -> Unit) {
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .background(Color(0xFFF5EEFF), RoundedCornerShape(4.dp))
-            .padding(16.dp)
+            .padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, color = Color.Black)
+        Text(text = title, color = MaterialTheme.colorScheme.onSurface)
     }
 }
