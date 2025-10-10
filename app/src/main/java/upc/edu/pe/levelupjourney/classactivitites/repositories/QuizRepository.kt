@@ -12,9 +12,45 @@ import upc.edu.pe.levelupjourney.classactivitites.domain.model.response.CreateQu
 class QuizRepository(
     private val apiService: QuizApiService
 ) {
-    
+    // Helper to unify network call handling and reduce duplication
+    private suspend fun <T> safeApiCall(call: suspend () -> retrofit2.Response<T>): Result<T> {
+        return try {
+            val response = call()
+            if (response.isSuccessful) {
+                val body = response.body()
+                if (body != null) {
+                    Result.success(body)
+                } else {
+                    Result.failure(Exception("Empty response body"))
+                }
+            } else {
+                val err = response.errorBody()?.string()
+                Result.failure(Exception("HTTP ${response.code()}: ${response.message()} - $err"))
+            }
+        } catch (e: Exception) {
+            Log.e("QuizRepository", "Network call failed", e)
+            Result.failure(e)
+        }
+    }
+
+    // Helper for endpoints that return no body (Unit) - treat successful HTTP status as success
+    private suspend fun safeApiCallUnit(call: suspend () -> retrofit2.Response<*>): Result<Unit> {
+        return try {
+            val response = call()
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                val err = response.errorBody()?.string()
+                Result.failure(Exception("HTTP ${response.code()}: ${response.message()} - $err"))
+            }
+        } catch (e: Exception) {
+            Log.e("QuizRepository", "Network call failed", e)
+            Result.failure(e)
+        }
+    }
+
     // ==================== QUIZ CRUD Operations ====================
-    
+
     suspend fun createQuiz(
         name: String,
         description: String?,
@@ -22,46 +58,19 @@ class QuizRepository(
         coverImageUrl: String?,
         creatorId: String
     ): Result<CreateQuizResponse> {
-        return try {
-            Log.d("QuizRepository", "=== CREATING QUIZ ===")
-            Log.d("QuizRepository", "Name: $name")
-            
-            val request = CreateQuizRequest(name, description, category, coverImageUrl, creatorId)
-            val response = apiService.createQuiz(request)
-            
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Log.d("QuizRepository", "Quiz created with ID: ${it.id}")
-                    Result.success(it)
-                } ?: Result.failure(Exception("Response body is null"))
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}: ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            Log.e("QuizRepository", "Create quiz exception", e)
-            Result.failure(e)
-        }
+        Log.d("QuizRepository", "Creating quiz: $name")
+        val request = CreateQuizRequest(name, description, category, coverImageUrl, creatorId)
+        return safeApiCall { apiService.createQuiz(request) }
     }
-    
+
     suspend fun getQuizById(
         quizId: Long,
         userId: String,
         includeQuestions: Boolean = true
     ): Result<Quiz> {
-        return try {
-            val response = apiService.getQuizById(quizId, userId, includeQuestions)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it)
-                } ?: Result.failure(Exception("Response body is null"))
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return safeApiCall { apiService.getQuizById(quizId, userId, includeQuestions) }
     }
-    
+
     suspend fun updateQuiz(
         quizId: Long,
         name: String,
@@ -70,67 +79,35 @@ class QuizRepository(
         coverImageUrl: String?,
         userId: String
     ): Result<Unit> {
-        return try {
-            val request = UpdateQuizRequest(name, description, category, coverImageUrl, userId)
-            val response = apiService.updateQuiz(quizId, request)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        val request = UpdateQuizRequest(name, description, category, coverImageUrl, userId)
+        // Use safeApiCallUnit because the endpoint returns no body
+        return safeApiCallUnit { apiService.updateQuiz(quizId, request) }
     }
-    
+
     suspend fun deleteQuiz(quizId: Long, userId: String): Result<Unit> {
-        return try {
-            val response = apiService.deleteQuiz(quizId, userId)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return safeApiCallUnit { apiService.deleteQuiz(quizId, userId) }
     }
-    
+
     suspend fun publishQuiz(quizId: Long, userId: String): Result<Unit> {
-        return try {
-            val response = apiService.publishQuiz(quizId, userId)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return safeApiCallUnit { apiService.publishQuiz(quizId, userId) }
     }
-    
+
     // ==================== QUIZ QUERIES ====================
-    
+
     suspend fun getPublicQuizzes(
         category: String? = null,
         search: String? = null,
         page: Int = 0,
         size: Int = 20
     ): Result<List<Quiz>> {
-        return try {
-            val response = apiService.getPublicQuizzes(category, search, page, size)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it.content)
-                } ?: Result.failure(Exception("Response body is null"))
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+        val res = safeApiCall { apiService.getPublicQuizzes(category, search, page, size) }
+        return if (res.isSuccess) {
+            Result.success(res.getOrNull()!!.content)
+        } else {
+            Result.failure(res.exceptionOrNull() ?: Exception("Unknown error"))
         }
     }
-    
+
     suspend fun getMyQuizzes(
         userId: String,
         category: String? = null,
@@ -138,29 +115,19 @@ class QuizRepository(
         page: Int = 0,
         size: Int = 20
     ): Result<List<Quiz>> {
-        return try {
-            Log.d("QuizRepository", "=== FETCHING MY QUIZZES ===")
-            Log.d("QuizRepository", "User ID: $userId")
-            
-            val response = apiService.getMyQuizzes(userId, category, search, page, size)
-            
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Log.d("QuizRepository", "Total quizzes: ${it.content.size}")
-                    Result.success(it.content)
-                } ?: Result.failure(Exception("Response body is null"))
-            } else {
-                Log.e("QuizRepository", "Error: ${response.code()}")
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Log.e("QuizRepository", "Exception", e)
-            Result.failure(e)
+        Log.d("QuizRepository", "Fetching quizzes for user: $userId")
+        val res = safeApiCall { apiService.getMyQuizzes(userId, category, search, page, size) }
+        return if (res.isSuccess) {
+            val list = res.getOrNull()!!.content
+            Log.d("QuizRepository", "Fetched ${list.size} quizzes")
+            Result.success(list)
+        } else {
+            Result.failure(res.exceptionOrNull() ?: Exception("Unknown error"))
         }
     }
-    
+
     // ==================== QUESTION Operations ====================
-    
+
     suspend fun addQuestion(
         quizId: Long,
         questionText: String,
@@ -172,24 +139,13 @@ class QuizRepository(
         mediaUrl: String?,
         userId: String
     ): Result<CreateQuestionResponse> {
-        return try {
-            val request = CreateQuestionRequest(
-                questionText, questionType, timeLimit, points,
-                answers, correctAnswerIndex, mediaUrl, userId
-            )
-            val response = apiService.addQuestion(quizId, request)
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Result.success(it)
-                } ?: Result.failure(Exception("Response body is null"))
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        val request = CreateQuestionRequest(
+            questionText, questionType, timeLimit, points,
+            answers, correctAnswerIndex, mediaUrl, userId
+        )
+        return safeApiCall { apiService.addQuestion(quizId, request) }
     }
-    
+
     suspend fun updateQuestion(
         quizId: Long,
         questionId: Long,
@@ -202,36 +158,18 @@ class QuizRepository(
         mediaUrl: String?,
         userId: String
     ): Result<Unit> {
-        return try {
-            val request = CreateQuestionRequest(
-                questionText, questionType, timeLimit, points,
-                answers, correctAnswerIndex, mediaUrl, userId
-            )
-            val response = apiService.updateQuestion(quizId, questionId, request)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        val request = CreateQuestionRequest(
+            questionText, questionType, timeLimit, points,
+            answers, correctAnswerIndex, mediaUrl, userId
+        )
+        return safeApiCallUnit { apiService.updateQuestion(quizId, questionId, request) }
     }
-    
+
     suspend fun deleteQuestion(
         quizId: Long,
         questionId: Long,
         userId: String
     ): Result<Unit> {
-        return try {
-            val response = apiService.deleteQuestion(quizId, questionId, userId)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("HTTP ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return safeApiCallUnit { apiService.deleteQuestion(quizId, questionId, userId) }
     }
 }

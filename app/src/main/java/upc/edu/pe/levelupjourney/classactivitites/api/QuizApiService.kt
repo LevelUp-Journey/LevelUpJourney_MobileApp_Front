@@ -18,7 +18,7 @@ interface QuizApiService {
      * Create a new quiz
      * POST /api/v1/quizzes
      */
-    @POST("api/v1/quizzes")
+    @POST("/api/v1/quizzes")
     suspend fun createQuiz(
         @Body request: CreateQuizRequest
     ): Response<CreateQuizResponse>
@@ -27,7 +27,7 @@ interface QuizApiService {
      * Get a specific quiz by ID
      * GET /api/v1/quizzes/{quizId}
      */
-    @GET("api/v1/quizzes/{quizId}")
+    @GET("/api/v1/quizzes/{quizId}")
     suspend fun getQuizById(
         @Path("quizId") quizId: Long,
         @Query("userId") userId: String,
@@ -38,7 +38,7 @@ interface QuizApiService {
      * Update an existing quiz
      * PUT /api/v1/quizzes/{quizId}
      */
-    @PUT("api/v1/quizzes/{quizId}")
+    @PUT("/api/v1/quizzes/{quizId}")
     suspend fun updateQuiz(
         @Path("quizId") quizId: Long,
         @Body request: UpdateQuizRequest
@@ -48,7 +48,7 @@ interface QuizApiService {
      * Delete a quiz
      * DELETE /api/v1/quizzes/{quizId}
      */
-    @DELETE("api/v1/quizzes/{quizId}")
+    @DELETE("/api/v1/quizzes/{quizId}")
     suspend fun deleteQuiz(
         @Path("quizId") quizId: Long,
         @Query("userId") userId: String
@@ -58,7 +58,7 @@ interface QuizApiService {
      * Publish a quiz (change visibility from PRIVATE to PUBLIC)
      * POST /api/v1/quizzes/{quizId}/publish
      */
-    @POST("api/v1/quizzes/{quizId}/publish")
+    @POST("/api/v1/quizzes/{quizId}/publish")
     suspend fun publishQuiz(
         @Path("quizId") quizId: Long,
         @Query("userId") userId: String
@@ -70,7 +70,7 @@ interface QuizApiService {
      * Get all public quizzes (paginated)
      * GET /api/v1/quizzes/public
      */
-    @GET("api/v1/quizzes/public")
+    @GET("/api/v1/quizzes/public")
     suspend fun getPublicQuizzes(
         @Query("category") category: String? = null,
         @Query("search") search: String? = null,
@@ -82,7 +82,7 @@ interface QuizApiService {
      * Get my quizzes (created by current user)
      * GET /api/v1/quizzes/my-quizzes
      */
-    @GET("api/v1/quizzes/my-quizzes")
+    @GET("/api/v1/quizzes/my-quizzes")
     suspend fun getMyQuizzes(
         @Query("userId") userId: String,
         @Query("category") category: String? = null,
@@ -97,7 +97,7 @@ interface QuizApiService {
      * Add a new question to a quiz
      * POST /api/v1/quizzes/{quizId}/questions
      */
-    @POST("api/v1/quizzes/{quizId}/questions")
+    @POST("/api/v1/quizzes/{quizId}/questions")
     suspend fun addQuestion(
         @Path("quizId") quizId: Long,
         @Body request: CreateQuestionRequest
@@ -107,7 +107,7 @@ interface QuizApiService {
      * Update an existing question
      * PUT /api/v1/quizzes/{quizId}/questions/{questionId}
      */
-    @PUT("api/v1/quizzes/{quizId}/questions/{questionId}")
+    @PUT("/api/v1/quizzes/{quizId}/questions/{questionId}")
     suspend fun updateQuestion(
         @Path("quizId") quizId: Long,
         @Path("questionId") questionId: Long,
@@ -118,7 +118,7 @@ interface QuizApiService {
      * Delete a question from a quiz
      * DELETE /api/v1/quizzes/{quizId}/questions/{questionId}
      */
-    @DELETE("api/v1/quizzes/{quizId}/questions/{questionId}")
+    @DELETE("/api/v1/quizzes/{quizId}/questions/{questionId}")
     suspend fun deleteQuestion(
         @Path("quizId") quizId: Long,
         @Path("questionId") questionId: Long,

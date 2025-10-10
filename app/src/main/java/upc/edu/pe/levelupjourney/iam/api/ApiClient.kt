@@ -11,8 +11,8 @@ import upc.edu.pe.levelupjourney.iam.repositories.AuthRepository
 import upc.edu.pe.levelupjourney.classactivitites.api.QuizApiService
 
 object ApiClient {
-    private const val BASE_URL = "http://192.168.0.119:8081" // For Android emulator pointing to localhost
-    private const val QUIZ_BASE_URL = "http://192.168.0.119:8086" // Quiz service base URL
+    private const val BASE_URL = "http://10.46.17.175:8081" // For Android emulator pointing to localhost
+    private const val QUIZ_BASE_URL = "http://10.46.17.175:8086" // Quiz service base URL
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
